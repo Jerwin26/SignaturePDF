@@ -7,13 +7,11 @@ namespace SignaturePDF.Models
 {
     public class Document
     {
-        public string Id { get; set; }
+        public int Id { get; set; }
         public string Name { get; set; }
         public int UserId { get; set; }
         public Status Status { get; set; }
         public byte[] Documents { get; set; }
-
-
 
 
     }
