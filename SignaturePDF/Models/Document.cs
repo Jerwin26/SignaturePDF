@@ -13,7 +13,7 @@ namespace SignaturePDF.Models
         public Status Status { get; set; }
         public byte[] Documents { get; set; }
 
-        public int userid { get; set; }
+
 
 
     }
