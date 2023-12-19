@@ -5,13 +5,14 @@ using System.Data.SqlClient;
 using System.Data;
 using System.Linq;
 using System.Web;
+using System.Web.UI.WebControls;
 
 namespace SignaturePDF.Repository
 {
     public class LoginRepository
     {
         private string connectionString = "Data Source=syslp616;Initial Catalog=TeamTask;Integrated Security=True;Encrypt=False";
-        public Registration GetUser(Login login)
+        public Registration GetUser(Models.Login login)
         {
             Registration registration = new Registration();
 
@@ -81,6 +82,24 @@ namespace SignaturePDF.Repository
             }
 
             return documents;
+        }
+        public void uploadDocuments(Document document)
+        {
+            using (SqlConnection connection = new SqlConnection(connectionString))
+            {
+                connection.Open();
+
+                using (SqlCommand command = new SqlCommand("sp_InsertDocument", connection))
+                {
+                    command.CommandType = CommandType.StoredProcedure;
+                    command.Parameters.AddWithValue("@documentName", document.Name);
+                    command.Parameters.AddWithValue("@document", document.Documents);
+                    command.Parameters.AddWithValue("@status", document.Status);
+                    command.Parameters.AddWithValue("@userId_Fk",document.UserId );
+                    command.ExecuteReader();
+
+                }
+            }
         }
 
     }
