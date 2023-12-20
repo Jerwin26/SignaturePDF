@@ -64,24 +64,36 @@ namespace SignaturePDF.Controllers
                     document.UserId = (int)Session["UserId"];
 
                 }
-
-                return DisplayPdf1(document);
+                TempData["MyDocument"] = document;
+                return RedirectToAction("DisplayPdf1");
             }
             return RedirectToAction("Index");
         }
         [HttpGet]
-        public ActionResult DisplayPdf1(Document document)
+        public ActionResult DisplayPdf1()
         {
-            if (document.Documents != null && document.Documents.Length > 0)
+            //Document model = null;
+            Document model = TempData["MyDocument"] as Document;
+            string folderPath = Server.MapPath("~/SamplePDF"); // Change the path as needed
+
+            // Ensure the folder exists, create it if necessary
+            if (!Directory.Exists(folderPath))
             {
-                ViewBag.fileBytes = Convert.ToBase64String(document.Documents);
+                Directory.CreateDirectory(folderPath);
             }
-            else
+
+            // Combine the folder path with the desired file name
+            string filePath = Path.Combine(folderPath, "generated1.pdf"); // Change the file name as needed
+
+            // Write the byte array to the file
+            System.IO.File.WriteAllBytes(filePath, model.Documents);
+
+            if (model != null)
             {
-              
-                ViewBag.fileBytes = null; 
+                ViewBag.filePath = "/SamplePDF/generated1.pdf";
+                return View(model);
             }
-            return View(document);
+            return RedirectToAction("Index");
         }
 
     }

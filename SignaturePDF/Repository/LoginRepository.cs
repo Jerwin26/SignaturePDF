@@ -11,8 +11,8 @@ namespace SignaturePDF.Repository
 {
     public class LoginRepository
     {
-        private string connectionString = "Data Source=SYSLP541;Initial Catalog=docSign;Integrated Security=True;";
-        public Registration GetUser(Login login)
+        private string connectionString = "Data Source=SYSLP616;Initial Catalog=TeamTask;Integrated Security=True;";
+        public Registration GetUser(Models.Login login)
         {
             Registration registration = new Registration();
 

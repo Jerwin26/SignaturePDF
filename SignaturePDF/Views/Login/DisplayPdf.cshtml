@@ -13,6 +13,7 @@
 <script type="text/javascript">
         var pdfBytes = @Html.Raw(Json.Encode(Model.Documents)); // Assuming ViewBag.PdfBytes contains your PDF bytes
         console.log(pdfBytes);
+
         if (pdfBytes) {
             var base64String = btoa(String.fromCharCode.apply(null, pdfBytes));
             var pdfDataUrl = "data:application/pdf;base64," + base64String;
