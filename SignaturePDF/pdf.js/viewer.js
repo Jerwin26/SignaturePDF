@@ -1989,7 +1989,9 @@ var PageView = function pageView(container, pdfPage, id, scale,
     }
     return this.textContent;
   };
-
+  //mohnish
+    // Add a 'drop' event listener to the textLayerDiv
+    
   this.draw = function pageviewDraw(callback) {
     if (this.renderingState !== RenderingStates.INITIAL)
       error('Must be in new state before drawing');
@@ -1998,14 +2000,29 @@ var PageView = function pageView(container, pdfPage, id, scale,
 
     var canvas = document.createElement('canvas');
     canvas.id = 'page' + this.id;
-    canvas.mozOpaque = true;
+      canvas.mozOpaque = true;
+      canvas.ondrop =  'handleDrop(events)';
+      canvas.ondragover = ' handleDragOver(events)';
+      console.log('2alyer---');
     div.appendChild(canvas);
     this.canvas = canvas;
 
-    var textLayerDiv = null;
-    if (!PDFJS.disableTextLayer) {
+      var textLayerDiv = null;
+     console.log('alyer---');
+      if (!PDFJS.disableTextLayer) {
+      console.log('alyer---');
       textLayerDiv = document.createElement('div');
-      textLayerDiv.className = 'textLayer';
+          textLayerDiv.className = 'textLayer';
+          textLayerDiv.id = "signlayer" + this.id;
+        //mohnish
+          textLayerDiv.ondrop = function (events) {
+              handleDrop(events);
+          };
+          console.log('alyer---');
+          textLayerDiv.ondragover = function (events) {
+              handleDragOver(events);
+          };
+          console.log('alyer---');
       div.appendChild(textLayerDiv);
     }
     var textLayer = this.textLayer =
@@ -3283,3 +3300,42 @@ window.addEventListener('afterprint', function afterPrint(evt) {
 //  });
 //});
 //#endif
+
+//mohnish
+function handleDrop(event) {
+    event.preventDefault();
+    const fieldType = event.dataTransfer.getData('text/plain');
+    console.log('mohnish--');
+    if (fieldType === 'Signature Field') {
+        // For the signature field, use a div with a click event
+        const signatureField = document.createElement('div');
+        signatureField.className = 'signature-field';
+        signatureField.style.left = (event.clientX - event.target.getBoundingClientRect().left) + 'px';
+        signatureField.style.top = (event.clientY - event.target.getBoundingClientRect().top) + 'px';
+
+        // Make the new form field draggable
+        signatureField.draggable = true;
+        signatureField.onclick = function () {
+            showSignatureModal(signatureField);
+        };
+
+        // Add the signature field to the form builder
+        document.getElementById('form-builder').appendChild(signatureField);
+    } else {
+        console.log('mohnish--');
+        // For other fields, use the existing logic
+        const formField = document.createElement('div');
+
+        formField.className = 'textLayer';
+        formField.innerText = fieldType;
+        formField.style.left = (event.clientX - event.target.getBoundingClientRect().left - formField.clientWidth / 2) + 'px';
+        formField.style.top = (event.clientY - event.target.getBoundingClientRect().top - formField.clientHeight / 2) + 'px';
+
+        // Make the new form field draggable
+        formField.draggable = true;
+        formField.ondragstart = handleDragStart;
+        console.log('mohnish--');
+        // Add the form field to the form builder
+        document.getElementById('textLayer').appendChild(formField);
+    }
+}

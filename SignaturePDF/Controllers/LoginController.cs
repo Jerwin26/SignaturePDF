@@ -73,28 +73,45 @@ namespace SignaturePDF.Controllers
         public ActionResult DisplayPdf1()
         {
             //Document model = null;
-            Document model = TempData["MyDocument"] as Document;
-            string folderPath = Server.MapPath("~/SamplePDF"); // Change the path as needed
+            // Retrieve the document model from TempData
+             /*Document model = TempData["MyDocument"] as Document;
 
-            // Ensure the folder exists, create it if necessary
-            if (!Directory.Exists(folderPath))
-            {
-                Directory.CreateDirectory(folderPath);
-            }
+             // Ensure the model is not null
+             if (model == null)
+             {
+                 // Handle the case where the model is null, for example, redirect to another action
+                 return RedirectToAction("Index");
+             }
 
-            // Combine the folder path with the desired file name
-            string filePath = Path.Combine(folderPath, "generated1.pdf"); // Change the file name as needed
+             // Set the folder path where the PDF file will be saved
+             string folderPath = Server.MapPath("~/SamplePDF");
 
-            // Write the byte array to the file
-            System.IO.File.WriteAllBytes(filePath, model.Documents);
+             // Ensure the folder exists; create it if necessary
+             if (!Directory.Exists(folderPath))
+             {
+                 Directory.CreateDirectory(folderPath);
+             }
 
-            if (model != null)
-            {
-                ViewBag.filePath = "/SamplePDF/generated1.pdf";
-                return View(model);
-            }
-            return RedirectToAction("Index");
+             // Combine the folder path with the desired file name
+             string filePath = Path.Combine(folderPath, "generated12.pdf");
+
+             // Write the byte array to the file
+             System.IO.File.WriteAllBytes(filePath, model.Documents);*/
+
+             // Set the file path in ViewBag for later use in the view
+            //ViewBag.filePath = "/SamplePDF/generated12.pdf";
+            ViewBag.filePath = "/SamplePDF/generated12.pdf";
+            return View();
+            // Pass the model to the view
+           // return View(model);
         }
+        public FileResult DownloadPdf()
+        {
+            string filePath = Server.MapPath("~/App_Data/PdfFiles/generated.pdf");
+            return File(filePath, "application/pdf", "generated.pdf");
+        }
+
+
 
     }
 }

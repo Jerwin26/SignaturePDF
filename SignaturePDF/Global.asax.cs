@@ -15,7 +15,7 @@ namespace SignaturePDF
             AreaRegistration.RegisterAllAreas();
             //FilterConfig.RegisterGlobalFilters(GlobalFilters.Filters);
             RouteConfig.RegisterRoutes(RouteTable.Routes);
-            RegisterBundles(BundleTable.Bundles);
+            BundleConfig.RegisterBundles(BundleTable.Bundles);
         }
         
         public static void RegisterBundles(BundleCollection bundles)

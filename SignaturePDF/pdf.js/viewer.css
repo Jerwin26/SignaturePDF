@@ -1135,8 +1135,9 @@ canvas {
   font-family: sans-serif;
 }
 
+
 .textLayer > div {
-  color: transparent;
+/*mohnish*/
   position: absolute;
   line-height:1.3;
   white-space:pre;

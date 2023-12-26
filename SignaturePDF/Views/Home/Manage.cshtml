@@ -30,19 +30,18 @@
             text-align: center;
         }
     </style>
-   
+
 </head>
 <body>
-    <input type="button" id="btnPreview" value="Preview PDF Document" onclick="LoadPdfFromUrl('@Url.Content("~/SamplePdf/generated.pdf")')" draggable="true" ondragstart="drag(event)" />
+    <input type="button" id="btnPreview" value="Preview PDF Document" onclick="LoadPdfFromUrl('@Url.Content("~/SamplePdf/generated12.pdf")')" draggable="true" ondragstart="drag(event)" />
     <button onclick="downloadModifiedPdf()">Download</button>
 
     <hr />
     <img id="drag1" src="~/Content/Image/sign.png" draggable="true" ondragstart="drag(event)" width="336" height="69">
 
     <div id="pdf_container"></div>
-
-    <!-- New column for signature drag and drop -->
-    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.6.347/pdf.min.js"></script>
+ New column for signature drag and drop 
+<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.6.347/pdf.min.js"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.6.347/pdf_viewer.min.css" rel="stylesheet" type="text/css" />
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/1.3.2/jspdf.min.js"></script>
     <script type="text/javascript">
@@ -59,9 +58,9 @@
                 }
             }
 
-           /* var signatureImage = document.getElementById('drag1');
-            var signatureImageData = signatureImage.toDataURL('image/png');
-            modifiedPdfDoc.addImage(signatureImageData, 'PNG', 50, 50);*/
+            /* var signatureImage = document.getElementById('drag1');
+             var signatureImageData = signatureImage.toDataURL('image/png');
+             modifiedPdfDoc.addImage(signatureImageData, 'PNG', 50, 50);*/
 
             modifiedPdfDoc.save('modified_pdf.pdf');
             console.log("Hello Download");

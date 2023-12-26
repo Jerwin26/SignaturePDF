@@ -1,0 +1,103 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Drag and Drop Text to PDF</title>
+    <style>
+        /* Your existing styles */
+
+        #pdfContainer {
+            border: 2px dashed #aaa;
+            height: 500px;
+            margin: 10px;
+            position: relative;
+        }
+
+        #pdfDropzone {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+        }
+
+        canvas {
+            display: block;
+        }
+    </style>
+</head>
+<body>
+
+    <div id="dragText" draggable="true" ondragstart="drag(event)">Drag me!</div>
+
+    <div id="pdfContainer">
+        <div id="pdfDropzone" ondrop="drop(event)" ondragover="allowDrop(event)"></div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.11.338/pdf.min.js"></script>
+    <script>
+        function drag(ev) {
+            ev.dataTransfer.setData("text", ev.target.id);
+        }
+
+        function allowDrop(ev) {
+            ev.preventDefault();
+        }
+
+        function drop(ev) {
+            ev.preventDefault();
+            var data = ev.dataTransfer.getData("text");
+            var draggedElement = document.getElementById(data);
+
+            // Get the position where the element was dropped
+            var offsetX = ev.clientX - ev.target.getBoundingClientRect().left;
+            var offsetY = ev.clientY - ev.target.getBoundingClientRect().top;
+
+            // Set the position of the dragged element within the PDF container
+            draggedElement.style.position = 'absolute';
+            draggedElement.style.left = offsetX + 'px';
+            draggedElement.style.top = offsetY + 'px';
+
+            // Append the dragged element to the PDF container
+            document.getElementById("pdfContainer").appendChild(draggedElement);
+
+            // Load and render a sample PDF (replace with your PDF URL)
+            var pdfUrl = '~/SamplePdf/generated.pdf';
+           
+            renderPdf(pdfUrl);
+        }
+
+        function renderPdf(url) {
+            // Asynchronously download PDF
+            pdfjsLib.getDocument(url).promise.then(function (pdfDoc) {
+                // Get the first page
+                return pdfDoc.getPage(1);
+            }).then(function (page) {
+                // Set up the canvas element for rendering
+                var canvas = document.createElement('canvas');
+                var context = canvas.getContext('2d');
+                canvas.style.width = '100%';
+                canvas.style.height = '100%';
+
+                // Append the canvas to the PDF container
+                document.getElementById('pdfContainer').appendChild(canvas);
+
+                // Get the viewport of the page
+                var viewport = page.getViewport({ scale: 1.5 });
+
+                // Set the canvas size to match the viewport
+                canvas.width = viewport.width;
+                canvas.height = viewport.height;
+
+                // Render the page on the canvas
+                var renderTask = page.render({ canvasContext: context, viewport: viewport });
+                return renderTask.promise;
+            }).catch(function (reason) {
+                console.error('Error loading PDF:', reason);
+            });
+        }
+    </script>
+
+</body>
+</html>

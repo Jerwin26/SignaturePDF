@@ -16,8 +16,10 @@ namespace SignaturePDF
             routes.MapRoute(
                 name: "Default",
                 url: "{controller}/{action}/{id}",
-                defaults: new { controller = "Login", action = "Index", id = UrlParameter.Optional }
-            );
+             //defaults: new { controller = "Home", action = "Contact", id = UrlParameter.Optional }
+             // defaults: new { controller = "Login", action = "Index", id = UrlParameter.Optional }
+             defaults: new { controller = "Login", action = "DisplayPdf1", id = UrlParameter.Optional }
+                );
         }
     }
 }

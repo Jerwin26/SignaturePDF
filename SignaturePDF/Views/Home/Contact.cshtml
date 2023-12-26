@@ -1,19 +1,271 @@
-﻿@{
-    ViewBag.Title = "Contact";
-}
-<main aria-labelledby="title">
-    <h2 id="title">@ViewBag.Title.</h2>
-    <h3>@ViewBag.Message</h3>
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Docsign</title>
+    <link rel="stylesheet" href="https://mozilla.github.io/pdf.js/web/viewer.css">
+    <script src="https://mozilla.github.io/pdf.js/build/pdf.js"></script>
+    <script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
+    <script src="https://mozilla.github.io/pdf.js/build/pdf.worker.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/interactjs@1.10.13/dist/interact.min.js"></script>
 
-    <address>
-        One Microsoft Way<br />
-        Redmond, WA 98052-6399<br />
-        <abbr title="Phone">P:</abbr>
-        425.555.0100
-    </address>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.6.347/pdf.min.js"></script>
 
-    <address>
-        <strong>Support:</strong>   <a href="mailto:Support@example.com">Support@example.com</a><br />
-        <strong>Marketing:</strong> <a href="mailto:Marketing@example.com">Marketing@example.com</a>
-    </address>
-</main>
+
+    <style>
+        #pdf-container {
+            width: 100%;
+            height: 600px;
+            border: 2px dashed #ccc;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .pdf-page {
+            width: 100%;
+            height: 100%;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .signature-field {
+            width: 150px;
+            height: 60px;
+            border: 1px solid #000;
+            position: absolute;
+            cursor: pointer;
+            background-size: contain;
+            background-repeat: no-repeat;
+        }
+
+        #toolbox {
+            margin-top: 20px;
+        }
+
+        #signature-modal {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: white;
+            padding: 20px;
+            border: 1px solid #ccc;
+            z-index: 1000;
+        }
+    </style>
+</head>
+<body>
+    <button onclick="previewPdf()">Preview PDF</button>
+
+    <input type="file" id="pdf-input" accept=".pdf" onchange="handlePdfUpload(event)">
+    <div id="pdf-container" ondrop="handleDrop(event)" ondragover="handleDragOver(event)"></div>
+
+    <div id="toolbox">
+        <div class="form-field" draggable="true" ondragstart="handleSignatureFieldDragStart(event)">Signature Field</div>
+    </div>
+
+    <div id="signature-modal">
+        <label for="signature-image">Upload Signature Image:</label>
+        <input type="file" id="signature-image" accept="image/*">
+        <button onclick="addSignature()">Add Signature</button>
+        <button onclick="cancelSignature()">Cancel</button>
+    </div>
+
+    <script  type="text/javascript">
+        let pdfDoc;
+        let currentSignatureField;
+        pdfjsLib.GlobalWorkerOptions.workerSrc = "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.6.347/pdf.worker.min.js";
+
+        function handlePdfUpload(event) {
+            const pdfInput = event.target;
+            const file = pdfInput.files[0];
+            if (file && file.type === 'application/pdf') {
+                const reader = new FileReader();
+                reader.onload = function (e) {
+                    const pdfData = e.target.result;
+                    loadPdf(pdfData);
+                };
+                reader.readAsArrayBuffer(file);
+            } else {
+                alert('Please select a valid PDF file.');
+            }
+        }
+        function loadPdf(pdfData) {
+            pdfjsLib.getDocument({ data: pdfData }).promise.then(function (loadedPdfDoc) {
+                // Set the global pdfDoc variable
+                pdfDoc = loadedPdfDoc;
+                previewPdf();
+            });
+        }
+        function displayPdf(pdfData) {
+            pdfjsLib.getDocument({ data: pdfData }).promise.then(pdfDoc_ => {
+                console.log("hello pdf3");
+                pdfDoc = pdfDoc_;
+                renderPdfPages(pdfDoc);
+            });
+        }
+
+        function renderPdfPages(pdfDoc) {
+            const numPages = pdfDoc.numPages;
+            console.log("hello pdf4");
+            for (let pageNum = 1; pageNum <= numPages; pageNum++) {
+                renderPdfPage(pdfDoc, pageNum);
+            }
+
+            addEventListenersToPdfPages();
+        }
+
+        function renderPdfPage(pdfDoc, pageNum) {
+            pdfDoc.getPage(pageNum).then(page => {
+                const pdfContainer = document.getElementById('pdf-container');
+                const pdfPage = document.createElement('div');
+                pdfPage.className = 'pdf-page';
+                pdfPage.style.backgroundSize = 'cover';
+                pdfPage.style.backgroundRepeat = 'no-repeat';
+                const viewport = page.getViewport(1.0);
+                const scale = pdfContainer.clientWidth / viewport.width;
+                const scaledViewport = page.getViewport(scale);
+                pdfPage.style.width = scaledViewport.width + 'px';
+                pdfPage.style.height = scaledViewport.height + 'px';
+                pdfPage.style.backgroundImage = `url(${page.toDataURL()})`;
+                pdfPage.addEventListener('dragover', handleDragOver);
+                pdfPage.addEventListener('drop', handleDrop);
+                pdfContainer.appendChild(pdfPage);
+            });
+        }
+
+        interact('.signature-field')
+            .draggable({
+                onmove: function (event) {
+                    const target = event.target;
+                    const x = (parseFloat(target.getAttribute('data-x')) || 0) + event.dx;
+                    const y = (parseFloat(target.getAttribute('data-y')) || 0) + event.dy;
+                    target.style.transform = `translate(${x}px, ${y}px)`;
+                    target.setAttribute('data-x', x);
+                    target.setAttribute('data-y', y);
+                },
+            })
+            .resizable({
+                edges: { left: true, right: true, bottom: true, top: true },
+                restrictEdges: {
+                    outer: 'parent',
+                    endOnly: true,
+                },
+                restrictSize: {
+                    min: { width: 50, height: 30 },
+                },
+                inertia: true,
+            })
+            .on('resizemove', function (event) {
+                const target = event.target;
+                const x = (parseFloat(target.getAttribute('data-x')) || 0);
+                const y = (parseFloat(target.getAttribute('data-y')) || 0);
+                target.style.width = event.rect.width + 'px';
+                target.style.height = event.rect.height + 'px';
+                target.setAttribute('data-x', x);
+                target.setAttribute('data-y', y);
+            });
+
+        function handleDragStart(event) {
+            event.dataTransfer.setData('text/plain', event.target.innerText);
+        }
+
+        function handleSignatureFieldDragStart(event) {
+            event.dataTransfer.setData('text/plain', 'Signature Field');
+        }
+
+        function showSignatureModal(signatureField) {
+            document.getElementById('signature-modal').style.display = 'block';
+            currentSignatureField = signatureField;
+        }
+
+        function hideSignatureModal() {
+            document.getElementById('signature-modal').style.display = 'none';
+        }
+
+        function handleDragOver(event) {
+            event.preventDefault();
+        }
+
+        function handleDrop(event) {
+            event.preventDefault();
+            const fieldType = event.dataTransfer.getData('text/plain');
+            if (fieldType === 'Signature Field') {
+                const signatureField = document.createElement('div');
+                signatureField.className = 'signature-field';
+                signatureField.style.left = (event.clientX - event.target.getBoundingClientRect().left) + 'px';
+                signatureField.style.top = (event.clientY - event.target.getBoundingClientRect().top) + 'px';
+                signatureField.draggable = true;
+                signatureField.onclick = function () {
+                    showSignatureModal(signatureField);
+                };
+
+                signatureField.addEventListener('dragstart', function (e) {
+                    e.stopPropagation();
+                });
+
+                document.getElementById('pdf-container').appendChild(signatureField);
+            } else {
+                const formField = document.createElement('div');
+                formField.className = 'form-field';
+                formField.innerText = fieldType;
+                formField.style.left = (event.clientX - event.target.getBoundingClientRect().left - formField.clientWidth / 2) + 'px';
+                formField.style.top = (event.clientY - event.target.getBoundingClientRect().top - formField.clientHeight / 2) + 'px';
+                formField.draggable = true;
+                formField.ondragstart = handleDragStart;
+
+                document.getElementById('pdf-container').appendChild(formField);
+            }
+        }
+
+        function addSignature() {
+            const signatureImageInput = document.getElementById('signature-image');
+            const signatureImage = signatureImageInput.files[0];
+
+            if (signatureImage) {
+                currentSignatureField.style.backgroundImage = `url(${URL.createObjectURL(signatureImage)})`;
+                hideSignatureModal();
+            } else {
+                alert('Please select a signature image.');
+            }
+        }
+
+        function cancelSignature() {
+            if (currentSignatureField) {
+                currentSignatureField.remove();
+            }
+            hideSignatureModal();
+        }
+
+        function previewPdf() {
+            console.log("hello pdfpp");
+            if (pdfDoc) {
+                const pdfContainer = document.getElementById('pdf-container');
+                pdfContainer.innerHTML = '';
+                renderPdfPages(pdfDoc);
+            } else {
+                alert('Please upload a PDF before previewing.');
+            }
+        }
+
+        function addEventListenersToPdfPages() {
+            interact('.pdf-page')
+                .dropzone({
+                    ondragenter: function (event) {
+                        event.target.style.border = '2px dashed #000';
+                    },
+                    ondragleave: function (event) {
+                        event.target.style.border = '2px dashed #ccc';
+                    },
+                    ondrop: function (event) {
+                        event.target.style.border = '2px dashed #ccc';
+                        handleDrop(event);
+                    },
+                });
+        }
+
+        addEventListenersToPdfPages();</script>
+</body>
+</html>

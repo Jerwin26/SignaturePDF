@@ -1,4 +1,6 @@
-﻿@{
+﻿
+
+@{
     Layout = null;
 }
 <!DOCTYPE html>
@@ -9,15 +11,66 @@
     <title>PDF.js Viewer MVC Application</title>
     @Styles.Render("~/pdf.js/css")
     @Scripts.Render("~/pdf.js/js")
-<script type="text/javascript">
-        var THEFILEPATH = @Html.Raw(Json.Encode(ViewBag.filePath));
-        var url = '@Url.Content("~/pdf.js/worker_loader.js")';
+
+
+    <script type="text/javascript">
+            var THEFILEPATH = ("@ViewBag.filePath");
+            var url = '@Url.Content("~/pdf.js/worker_loader.js")';
         PDFJS.workerSrc = url;
-</script>
+
+    </script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.10.377/pdf.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/interactjs@1.10.13/dist/interact.min.js"></script>
+    <style>
+        #form-builder {
+            width: 500px;
+            height: 500px;
+            border: 2px dashed #ccc;
+            position: relative;
+        }
+
+        .signature-field {
+            width: 150px;
+            height: 60px;
+            border: 1px solid #000;
+            position: absolute;
+            cursor: pointer;
+           /* z-index: 1;*/
+        }
+
+        #signature-modal {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: white;
+            padding: 20px;
+            border: 1px solid #ccc;
+            z-index: 1000;
+        }
+    </style>
+
+    <style>
+        #outerContainer1{
+            width:70%;
+        }
+        #cursorCoordinatesDisplay {
+            position: fixed;
+            top: 10px;
+            left: 10px;
+            background-color: #fff;
+            padding: 5px;
+            border: 1px solid #ccc;
+        }
+    </style>
+
+
     @Scripts.Render("~/pdf.js/vd")
 </head>
 <body>
-    <div id="outerContainer" class="col-md-3">
+
+    <div id="outerContainer">
         <div id="sidebarContainer">
             <div id="toolbarSidebar">
                 <div class="splitToolbarButton toggled">
@@ -36,153 +89,265 @@
                 </div>
             </div>
         </div>
-    </div>
-    <div id="mainContainer" class="col-md-6">
-        <div class="findbar hidden doorHanger" id="findbar">
-            <label for="findInput" class="toolbarLabel" data-l10n-id="find_label">Find:</label>
-            <input id="findInput" class="toolbarField" tabindex="20">
-            <div class="splitToolbarButton">
-                <button class="toolbarButton findPrevious" title="" id="findPrevious" tabindex="21" data-l10n-id="find_previous">
-                    <span data-l10n-id="find_previous_label">Previous</span>
-                </button>
-                <div class="splitToolbarButtonSeparator"></div>
-                <button class="toolbarButton findNext" title="" id="findNext" tabindex="22" data-l10n-id="find_next">
-                    <span data-l10n-id="find_next_label">Next</span>
-                </button>
+        
+        <div id="mainContainer">
+            <div class="findbar hidden doorHanger" id="findbar">
+                <label for="findInput" class="toolbarLabel" data-l10n-id="find_label">Find:</label>
+                <input id="findInput" class="toolbarField" tabindex="20">
+                <div class="splitToolbarButton">
+                    <button class="toolbarButton findPrevious" title="" id="findPrevious" tabindex="21" data-l10n-id="find_previous">
+                        <span data-l10n-id="find_previous_label">Previous</span>
+                    </button>
+                    <div class="splitToolbarButtonSeparator"></div>
+                    <button class="toolbarButton findNext" title="" id="findNext" tabindex="22" data-l10n-id="find_next">
+                        <span data-l10n-id="find_next_label">Next</span>
+                    </button>
+                </div>
+                <input type="checkbox" id="findHighlightAll" class="toolbarField">
+                <label for="findHighlightAll" class="toolbarLabel" tabindex="23" data-l10n-id="find_highlight">Highlight all</label>
+                <input type="checkbox" id="findMatchCase" class="toolbarField">
+                <label for="findMatchCase" class="toolbarLabel" tabindex="24" data-l10n-id="find_match_case_label">Match case</label>
+                <span id="findMsg" class="toolbarLabel"></span>
             </div>
-            <input type="checkbox" id="findHighlightAll" class="toolbarField">
-            <label for="findHighlightAll" class="toolbarLabel" tabindex="23" data-l10n-id="find_highlight">Highlight all</label>
-            <input type="checkbox" id="findMatchCase" class="toolbarField">
-            <label for="findMatchCase" class="toolbarLabel" tabindex="24" data-l10n-id="find_match_case_label">Match case</label>
-            <span id="findMsg" class="toolbarLabel"></span>
-        </div>
-        <div class="toolbar">
-            <div id="toolbarContainer">
-                <div id="toolbarViewer">
-                    <div id="toolbarViewerLeft">
-                        <button id="sidebarToggle" class="toolbarButton" title="Toggle Sidebar" tabindex="3" data-l10n-id="toggle_slider">
-                            <span data-l10n-id="toggle_slider_label">Toggle Sidebar</span>
-                        </button>
-                        <div class="toolbarButtonSpacer"></div>
-                        <button id="viewFind" class="toolbarButton group" title="Find in Document" tabindex="4" data-l10n-id="findbar">
-                            <span data-l10n-id="findbar_label">Find</span>
-                        </button>
-                        <div class="splitToolbarButton">
-                            <button class="toolbarButton pageUp" title="Previous Page" id="previous" tabindex="5" data-l10n-id="previous">
-                                <span data-l10n-id="previous_label">Previous</span>
+            <div class="toolbar">
+                <div id="toolbarContainer">
+                    <div id="toolbarViewer">
+                        <div id="toolbarViewerLeft">
+
+                            <button id="sidebarToggle" class="toolbarButton" title="Toggle Sidebar" tabindex="3" data-l10n-id="toggle_slider">
+                                <span data-l10n-id="toggle_slider_label">Toggle Sidebar</span>
                             </button>
-                            <div class="splitToolbarButtonSeparator"></div>
-                            <button class="toolbarButton pageDown" title="Next Page" id="next" tabindex="6" data-l10n-id="next">
-                                <span data-l10n-id="next_label">Next</span>
+                            <div class="toolbarButtonSpacer"></div>
+                            <button id="viewFind" class="toolbarButton group" title="Find in Document" tabindex="4" data-l10n-id="findbar">
+                                <span data-l10n-id="findbar_label">Find</span>
                             </button>
-                        </div>
-                        <label id="pageNumberLabel" class="toolbarLabel" for="pageNumber" data-l10n-id="page_label">Page: </label>
-                        <input type="number" id="pageNumber" class="toolbarField pageNumber" value="1" size="4" min="1" tabindex="7" />
-                        <span id="numPages" class="toolbarLabel"></span>
-                    </div>
-                    <div id="toolbarViewerRight">
-                        <input id="fileInput" class="fileInput" type="file" oncontextmenu="return false;" style="visibility: hidden; position: fixed; right: 0; top: 0" />
-                        <button id="fullscreen" class="toolbarButton fullscreen" title="Switch to Presentation Mode" tabindex="11" data-l10n-id="presentation_mode">
-                            <span data-l10n-id="presentation_mode_label">Presentation Mode</span>
-                        </button>
-                        <button id="openFile" class="toolbarButton openFile hidden" title="Open File" tabindex="12" data-l10n-id="open_file">
-                            <span data-l10n-id="open_file_label">Open</span>
-                        </button>
-                        <button id="print" class="toolbarButton print hidden" title="Print" tabindex="13" data-l10n-id="print">
-                            <span data-l10n-id="print_label">Print</span>
-                        </button>
-                        <button id="download" class="toolbarButton download hidden" title="Download" tabindex="14" data-l10n-id="download">
-                            <span data-l10n-id="download_label">Download</span>
-                        </button>
-                        <a href="#" id="viewBookmark" class="toolbarButton bookmark hidden" title="Current view (copy or open in new window)" tabindex="15" data-l10n-id="bookmark"><span data-l10n-id="bookmark_label">Current View</span></a>
-                    </div>
-                    <div class="outerCenter hidden">
-                        <div class="innerCenter" id="toolbarViewerMiddle">
                             <div class="splitToolbarButton">
-                                <button class="toolbarButton zoomOut" title="Zoom Out" tabindex="8" data-l10n-id="zoom_out">
-                                    <span data-l10n-id="zoom_out_label">Zoom Out</span>
+                                <button class="toolbarButton pageUp" title="Previous Page" id="previous" tabindex="5" data-l10n-id="previous">
+                                    <span data-l10n-id="previous_label">Previous</span>
                                 </button>
                                 <div class="splitToolbarButtonSeparator"></div>
-                                <button class="toolbarButton zoomIn" title="Zoom In" tabindex="9" data-l10n-id="zoom_in">
-                                    <span data-l10n-id="zoom_in_label">Zoom In</span>
+                                <button class="toolbarButton pageDown" title="Next Page" id="next" tabindex="6" data-l10n-id="next">
+                                    <span data-l10n-id="next_label">Next</span>
                                 </button>
                             </div>
-                            <span id="scaleSelectContainer" class="dropdownToolbarButton">
-                                <select id="scaleSelect" title="Zoom" oncontextmenu="return false;" tabindex="10" data-l10n-id="zoom">
-                                    <option id="pageAutoOption" value="auto" selected="selected" data-l10n-id="page_scale_auto">Automatic Zoom</option>
-                                    <option id="pageActualOption" value="page-actual" data-l10n-id="page_scale_actual">Actual Size</option>
-                                    <option id="pageFitOption" value="page-fit" data-l10n-id="page_scale_fit">Fit Page</option>
-                                    <option id="pageWidthOption" value="page-width" data-l10n-id="page_scale_width">Full Width</option>
-                                    <option id="customScaleOption" value="custom"></option>
-                                    <option value="0.5">50%</option>
-                                    <option value="0.75">75%</option>
-                                    <option value="1">100%</option>
-                                    <option value="1.25">125%</option>
-                                    <option value="1.5">150%</option>
-                                    <option value="2">200%</option>
-                                </select>
-                            </span>
+                            <label id="pageNumberLabel" class="toolbarLabel" for="pageNumber" data-l10n-id="page_label">Page: </label>
+                            <input type="number" id="pageNumber" class="toolbarField pageNumber" value="1" size="4" min="1" tabindex="7" />
+                            <span id="numPages" class="toolbarLabel"></span>
+
+                        </div>
+                        <div id="toolbarViewerRight">
+                            <input id="fileInput" class="fileInput" type="file" oncontextmenu="return false;" display: inline-block; position: fixed; right: 0; top: 0" />
+                            <button id="fullscreen" class="toolbarButton fullscreen" title="Switch to Presentation Mode" tabindex="11" data-l10n-id="presentation_mode">
+                                <span data-l10n-id="presentation_mode_label">Presentation Mode</span>
+                            </button>
+                            <button id="openFile" class="toolbarButton openFile hidden" title="Open File" tabindex="12" data-l10n-id="open_file">
+                                <span data-l10n-id="open_file_label">Open</span>
+                            </button>
+                            <button id="print" class="toolbarButton print hidden" title="Print" tabindex="13" data-l10n-id="print">
+                                <span data-l10n-id="print_label">Print</span>
+                            </button>-->
+                            @*Ed-moni*@
+                            <button id="download" class="toolbarButton download" title="Download" tabindex="14" data-l10n-id="download">
+                                <span data-l10n-id="download_label">Download</span>
+                            </button>
+                            <a href="#" id="viewBookmark" class="toolbarButton bookmark hidden" title="Current view (copy or open in new window)" tabindex="15" data-l10n-id="bookmark"><span data-l10n-id="bookmark_label">Current View</span></a>
+                        </div>
+                        <div class="outerCenter hidden">
+                            <div class="innerCenter" id="toolbarViewerMiddle">
+                                <div class="splitToolbarButton">
+                                    <button class="toolbarButton zoomOut" title="Zoom Out" tabindex="8" data-l10n-id="zoom_out">
+                                        <span data-l10n-id="zoom_out_label">Zoom Out</span>
+                                    </button>
+                                    <div class="splitToolbarButtonSeparator"></div>
+                                    <button class="toolbarButton zoomIn" title="Zoom In" tabindex="9" data-l10n-id="zoom_in">
+                                        <span data-l10n-id="zoom_in_label">Zoom In</span>
+                                    </button>
+                                </div>
+                                <span id="scaleSelectContainer" class="dropdownToolbarButton">
+                                    <select id="scaleSelect" title="Zoom" oncontextmenu="return false;" tabindex="10" data-l10n-id="zoom">
+                                        <option id="pageAutoOption" value="auto" selected="selected" data-l10n-id="page_scale_auto">Automatic Zoom</option>
+                                        <option id="pageActualOption" value="page-actual" data-l10n-id="page_scale_actual">Actual Size</option>
+                                        <option id="pageFitOption" value="page-fit" data-l10n-id="page_scale_fit">Fit Page</option>
+                                        <option id="pageWidthOption" value="page-width" data-l10n-id="page_scale_width">Full Width</option>
+                                        <option id="customScaleOption" value="custom"></option>
+                                        <option value="0.5">50%</option>
+                                        <option value="0.75">75%</option>
+                                        <option value="1">100%</option>
+                                        <option value="1.25">125%</option>
+                                        <option value="1.5">150%</option>
+                                        <option value="2">200%</option>
+                                    </select>
+                                </span>
+                            </div>
                         </div>
                     </div>
                 </div>
             </div>
-        </div>
-    </div>
+            <menu type="context" id="viewerContextMenu">
+                <menuitem label="First Page" id="first_page" data-l10n-id="first_page"></menuitem>
+                <menuitem label="Last Page" id="last_page" data-l10n-id="last_page"></menuitem>
+                <menuitem label="Rotate Counter-Clockwise" id="page_rotate_ccw" data-l10n-id="page_rotate_ccw"></menuitem>
+                <menuitem label="Rotate Clockwise" id="page_rotate_cw" data-l10n-id="page_rotate_cw"></menuitem>
+            </menu>
+            <div id="viewerContainer">
+              @*  <div id="form-builder" ondrop="handleDrop(event)" ondragover="handleDragOver(event)"></div>*@
 
-    <div id="outerContainer" class="col-md-3">
-        <div id="sidebarContainer">
-            <div id="toolbarSidebar">
-                <div class="splitToolbarButton toggled">
-                    <button id="viewThumbnail" class="toolbarButton group toggled" title="Show Thumbnails" tabindex="1" data-l10n-id="thumbs">
-                        <span data-l10n-id="thumbs_label">Thumbnails</span>
-                    </button>
-                    <button id="viewOutline" class="toolbarButton group" title="Show Document Outline" tabindex="2" data-l10n-id="outline">
-                        <span data-l10n-id="outline_label">Document Outline</span>
-                    </button>
+                <div id="toolbox">
+                    <div class="form-field" draggable="true" ondragstart="handleDragStart(event)">Text Field</div>
+                    <div class="form-field" draggable="true" ondragstart="handleDragStart(event)">Checkbox</div>
+                    <div class="form-field" draggable="true" ondragstart="handleSignatureFieldDragStart(event)">Signature Field</div>
+                    <!-- Add more form fields to the toolbox as needed -->
                 </div>
-            </div>
-            <div id="sidebarContent">
-                <div id="thumbnailView">
-                </div>
-                <div id="outlineView" class="hidden">
-                </div>
-            </div>
-        </div>
-    </div>
-    <menu type="context" id="viewerContextMenu">
-        <menuitem label="First Page" id="first_page" data-l10n-id="first_page"></menuitem>
-        <menuitem label="Last Page" id="last_page" data-l10n-id="last_page"></menuitem>
-        <menuitem label="Rotate Counter-Clockwise" id="page_rotate_ccw" data-l10n-id="page_rotate_ccw"></menuitem>
-        <menuitem label="Rotate Clockwise" id="page_rotate_cw" data-l10n-id="page_rotate_cw"></menuitem>
-    </menu>
-    <div id="viewerContainer">
-        <div id="viewer" contextmenu="viewerContextMenu"></div>
-       
-        
 
-        <div id="loadingBox">
-            <div id="loading"></div>
-            <div id="loadingBar"><div class="progress"></div></div>
-        </div>
-        <div id="errorWrapper" hidden='true'>
-            <div id="errorMessageLeft">
-                <span id="errorMessage"></span>
-                <button id="errorShowMore" onclick="" oncontextmenu="return false;" data-l10n-id="error_more_info">
-                    More Information
-                </button>
-                <button id="errorShowLess" onclick="" oncontextmenu="return false;" data-l10n-id="error_less_info" hidden='true'>
-                    Less Information
-                </button>
+                <div id="signature-modal">
+                    <label for="signature-image">Upload Signature Image:</label>
+                    <input type="file" id="signature-image" accept="image/*">
+                    <button onclick="addSignature()">Add Signature</button>
+                </div>
+                <div id="viewer" contextmenu="viewerContextMenu"></div>
+               
             </div>
-            <div id="errorMessageRight">
-                <button id="errorClose" oncontextmenu="return false;" data-l10n-id="error_close">
-                    Close
-                </button>
+            <div id="loadingBox">
+                <div id="loading"></div>
+                <div id="loadingBar"><div class="progress"></div></div>
             </div>
-            <div class="clearBoth"></div>
-<textarea id="errorMoreInfo" hidden='true' readonly="readonly"></textarea>
+            <div id="errorWrapper" hidden='true'>
+                <div id="errorMessageLeft">
+                    <span id="errorMessage"></span>
+                    <button id="errorShowMore" onclick="" oncontextmenu="return false;" data-l10n-id="error_more_info">
+                        More Information
+                    </button>
+                    <button id="errorShowLess" onclick="" oncontextmenu="return false;" data-l10n-id="error_less_info" hidden='true'>
+                        Less Information
+                    </button>
+                </div>
+                <div id="errorMessageRight">
+                    <button id="errorClose" oncontextmenu="return false;" data-l10n-id="error_close">
+                        Close
+                    </button>
+                </div>
+                <div class="clearBoth"></div>
+                <textarea id="errorMoreInfo" hidden='true' readonly="readonly"></textarea>
+            </div>
+
         </div>
     </div>
+    <div id="printContainer"></div>
+
+  
+    <script>
+        interact('.signature-field')
+            .draggable({
+                onmove: function (event) {
+                    const target = event.target;
+                    const x = (parseFloat(target.getAttribute('data-x')) || 0) + event.dx;
+                    const y = (parseFloat(target.getAttribute('data-y')) || 0) + event.dy;
+
+                    target.style.transform = `translate(${x}px, ${y}px)`;
+                    target.setAttribute('data-x', x);
+                    target.setAttribute('data-y', y);
+                },
+            })
+            .resizable({
+                edges: { left: true, right: true, bottom: true, top: true },
+                restrictEdges: {
+                    outer: 'parent',
+                    endOnly: true,
+                },
+                restrictSize: {
+                    min: { width: 50, height: 30 },
+                },
+                inertia: true,
+            })
+            .on('resizemove', function (event) {
+                const target = event.target;
+                const x = (parseFloat(target.getAttribute('data-x')) || 0);
+                const y = (parseFloat(target.getAttribute('data-y')) || 0);
+
+                target.style.width = event.rect.width + 'px';
+                target.style.height = event.rect.height + 'px';
+
+                target.setAttribute('data-x', x);
+                target.setAttribute('data-y', y);
+            });
+
+        function handleDragStart(event) {
+            event.dataTransfer.setData('text/plain', event.target.innerText);
+        }
+
+        function handleSignatureFieldDragStart(event) {
+            event.dataTransfer.setData('text/plain', 'Signature Field');
+        }
+
+        function showSignatureModal(signatureField) {
+            document.getElementById('signature-modal').style.display = 'block';
+
+            // Set the current signature field being edited
+            currentSignatureField = signatureField;
+        }
+
+        function hideSignatureModal() {
+            document.getElementById('signature-modal').style.display = 'none';
+        }
+
+        function handleDragOver(event) {
+            event.preventDefault();
+        }
+
+        function handleDrop(event) {
+            event.preventDefault();
+            const fieldType = event.dataTransfer.getData('text/plain');
+
+            if (fieldType === 'Signature Field') {
+                // For the signature field, use a div with a click event
+                const signatureField = document.createElement('div');
+                signatureField.className = 'signature-field';
+                signatureField.style.left = (event.clientX - event.target.getBoundingClientRect().left) + 'px';
+                signatureField.style.top = (event.clientY - event.target.getBoundingClientRect().top) + 'px';
+
+                // Make the new form field draggable
+                signatureField.draggable = true;
+                signatureField.onclick = function () {
+                    showSignatureModal(signatureField);
+                };
+
+                // Add the signature field to the form builder
+                document.getElementById('signlayer1').appendChild(signatureField);
+            } else {
+                // For other fields, use the existing logic
+                const formField = document.createElement('div');
+
+                formField.className = 'textLayer';
+                formField.innerText = fieldType;
+                formField.style.left = (event.clientX - event.target.getBoundingClientRect().left - formField.clientWidth / 2) + 'px';
+                formField.style.top = (event.clientY - event.target.getBoundingClientRect().top - formField.clientHeight / 2) + 'px';
+                /*formField.style.zIndex = 5;*/
+                // Make the new form field draggable
+                formField.draggable = true;
+                formField.ondragstart = handleDragStart;
+
+                // Add the form field to the form builder
+                document.getElementById('signlayer1').appendChild(formField);
+            }
+        }
+
+        let currentSignatureField;
+
+        function addSignature() {
+            const signatureImageInput = document.getElementById('signature-image');
+            const signatureImage = signatureImageInput.files[0];
+
+            if (signatureImage) {
+                // Set the background image of the current signature field
+                currentSignatureField.style.backgroundImage = `url(${URL.createObjectURL(signatureImage)})`;
+
+                hideSignatureModal();
+            } else {
+                alert('Please select a signature image.');
+            }
+        }
+    </script>
 
 </body>
 </html>
+

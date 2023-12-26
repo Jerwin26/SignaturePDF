@@ -153,6 +153,7 @@
     <Content Include="favicon.ico" />
     <Content Include="Global.asax" />
     <Content Include="Content\Site.css" />
+    <Content Include="pdf.js\aa.js" />
     <Content Include="pdf.js\api.js" />
     <Content Include="pdf.js\bidi.js" />
     <Content Include="pdf.js\canvas.js" />
@@ -209,10 +210,12 @@
     <Content Include="pdf.js\parser.js" />
     <Content Include="pdf.js\pattern.js" />
     <Content Include="pdf.js\pdf.js" />
+    <Content Include="pdf.js\sign.68bf0c9.js" />
     <Content Include="pdf.js\stream.js" />
     <Content Include="pdf.js\util.js" />
     <Content Include="pdf.js\viewer.css" />
     <Content Include="pdf.js\viewer.js" />
+    <Content Include="pdf.js\web.68bf0c9.js" />
     <Content Include="pdf.js\worker.js" />
     <Content Include="pdf.js\worker_loader.js" />
     <Content Include="Scripts\bootstrap.bundle.js" />
@@ -252,6 +255,8 @@
     <Content Include="Views\Login\Create.cshtml" />
     <Content Include="Views\Login\DisplayPdf.cshtml" />
     <Content Include="Views\Login\DisplayPdf1.cshtml" />
+    <Content Include="Views\Home\HelloPdf.cshtml" />
+    <Content Include="Views\Home\Manage.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />
