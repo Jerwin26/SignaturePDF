@@ -24,6 +24,7 @@ var FindStates = {
   FIND_WRAPPED: 2,
   FIND_PENDING: 3
 };
+var mohnishDiv ='';
 
 //#if (FIREFOX || MOZCENTRAL || B2G || GENERIC || CHROME)
 //PDFJS.workerSrc = '../build/pdf.js';
@@ -2003,6 +2004,7 @@ var PageView = function pageView(container, pdfPage, id, scale,
       canvas.mozOpaque = true;
       canvas.ondrop =  'handleDrop(events)';
       canvas.ondragover = ' handleDragOver(events)';
+      //canvas.onmouseover = 'onmouseover="getDivId(this)"';
       console.log('2alyer---');
     div.appendChild(canvas);
     this.canvas = canvas;
@@ -2014,7 +2016,14 @@ var PageView = function pageView(container, pdfPage, id, scale,
       textLayerDiv = document.createElement('div');
           textLayerDiv.className = 'textLayer';
           textLayerDiv.id = "signlayer" + this.id;
-        //mohnish
+
+          //mohnish
+          textLayerDiv.onmouseover = function () {
+              var divIdii = textLayerDiv.id;
+              mohnishDiv = textLayerDiv.id;
+              console.log("kk=q: " + mohnishDiv);
+              console.log("Div ID: " + divIdii);
+          };
           textLayerDiv.ondrop = function (events) {
               handleDrop(events);
           };
@@ -3302,10 +3311,11 @@ window.addEventListener('afterprint', function afterPrint(evt) {
 //#endif
 
 //mohnish
+
 function handleDrop(event) {
     event.preventDefault();
     const fieldType = event.dataTransfer.getData('text/plain');
-    console.log('mohnish--');
+
     if (fieldType === 'Signature Field') {
         // For the signature field, use a div with a click event
         const signatureField = document.createElement('div');
@@ -3320,22 +3330,32 @@ function handleDrop(event) {
         };
 
         // Add the signature field to the form builder
-        document.getElementById('form-builder').appendChild(signatureField);
+        document.getElementById(mohnishDiv).appendChild(signatureField);
     } else {
-        console.log('mohnish--');
         // For other fields, use the existing logic
         const formField = document.createElement('div');
 
-        formField.className = 'textLayer';
         formField.innerText = fieldType;
-        formField.style.left = (event.clientX - event.target.getBoundingClientRect().left - formField.clientWidth / 2) + 'px';
-        formField.style.top = (event.clientY - event.target.getBoundingClientRect().top - formField.clientHeight / 2) + 'px';
+        var leftPosition = event.clientX - event.target.getBoundingClientRect().left - formField.clientWidth / 2;
+        var topPosition = event.clientY - event.target.getBoundingClientRect().top - formField.clientHeight / 2;
+        var parentWidth = event.target.getBoundingClientRect().width; // Width of the parent container
+        var parentHeight = event.target.getBoundingClientRect().height; // Height of the parent container
+        var rightPosition = parentWidth - leftPosition - formField.clientWidth;
+        var bottomPosition = parentHeight - topPosition - formField.clientHeight;
 
+        // Set the position styles
+        formField.style.left = leftPosition + 'px';
+        formField.style.right = rightPosition + 'px';
+        formField.style.top = topPosition + 'px';
+        formField.style.bottom = bottomPosition + 'px';
         // Make the new form field draggable
+        formField.setAttribute('dir', 'ltr');
+        const fontNameValue = 'g_font_p0_1'; // Replace 'YourFontName' with the actual font name
+        formField.setAttribute('data-font-name', fontNameValue);
+        formField.setAttribute('data-canvas-width', parentWidth);
         formField.draggable = true;
         formField.ondragstart = handleDragStart;
-        console.log('mohnish--');
-        // Add the form field to the form builder
-        document.getElementById('textLayer').appendChild(formField);
+        console.log("hola"+mohnishDiv);
+        document.getElementById(mohnishDiv).appendChild(formField);
     }
 }

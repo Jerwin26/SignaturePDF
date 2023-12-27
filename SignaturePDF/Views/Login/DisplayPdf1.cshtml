@@ -89,7 +89,7 @@
                 </div>
             </div>
         </div>
-        
+
         <div id="mainContainer">
             <div class="findbar hidden doorHanger" id="findbar">
                 <label for="findInput" class="toolbarLabel" data-l10n-id="find_label">Find:</label>
@@ -137,15 +137,22 @@
                         </div>
                         <div id="toolbarViewerRight">
                             <input id="fileInput" class="fileInput" type="file" oncontextmenu="return false;" display: inline-block; position: fixed; right: 0; top: 0" />
-                            <button id="fullscreen" class="toolbarButton fullscreen" title="Switch to Presentation Mode" tabindex="11" data-l10n-id="presentation_mode">
+                            <button id="fullscreen" class="toolbarButton fullscreen hidden" title="Switch to Presentation Mode" tabindex="11" data-l10n-id="presentation_mode">
                                 <span data-l10n-id="presentation_mode_label">Presentation Mode</span>
                             </button>
                             <button id="openFile" class="toolbarButton openFile hidden" title="Open File" tabindex="12" data-l10n-id="open_file">
                                 <span data-l10n-id="open_file_label">Open</span>
                             </button>
-                            <button id="print" class="toolbarButton print hidden" title="Print" tabindex="13" data-l10n-id="print">
+                            <button id="print" class="toolbarButton print" title="Print" tabindex="13" data-l10n-id="print">
                                 <span data-l10n-id="print_label">Print</span>
-                            </button>-->
+                            </button>
+                            <button>
+                                <div class="form-field" draggable="true" ondragstart="handleDragStart(event)">Input</div>
+                            </button>
+                            <button>
+                                <div class="form-field" draggable="true" ondragstart="handleSignatureFieldDragStart(event)">Image</div>
+                            </button>
+                            
                             @*Ed-moni*@
                             <button id="download" class="toolbarButton download" title="Download" tabindex="14" data-l10n-id="download">
                                 <span data-l10n-id="download_label">Download</span>
@@ -190,14 +197,14 @@
                 <menuitem label="Rotate Clockwise" id="page_rotate_cw" data-l10n-id="page_rotate_cw"></menuitem>
             </menu>
             <div id="viewerContainer">
-              @*  <div id="form-builder" ondrop="handleDrop(event)" ondragover="handleDragOver(event)"></div>*@
+                @*  <div id="form-builder" ondrop="handleDrop(event)" ondragover="handleDragOver(event)"></div>*@
 
-                <div id="toolbox">
+                <!--<div id="toolbox">
                     <div class="form-field" draggable="true" ondragstart="handleDragStart(event)">Text Field</div>
                     <div class="form-field" draggable="true" ondragstart="handleDragStart(event)">Checkbox</div>
-                    <div class="form-field" draggable="true" ondragstart="handleSignatureFieldDragStart(event)">Signature Field</div>
+                    <div class="form-field" draggable="true" ondragstart="handleSignatureFieldDragStart(event)">Signature Field</div>-->
                     <!-- Add more form fields to the toolbox as needed -->
-                </div>
+                <!--</div>-->
 
                 <div id="signature-modal">
                     <label for="signature-image">Upload Signature Image:</label>
@@ -205,7 +212,7 @@
                     <button onclick="addSignature()">Add Signature</button>
                 </div>
                 <div id="viewer" contextmenu="viewerContextMenu"></div>
-               
+
             </div>
             <div id="loadingBox">
                 <div id="loading"></div>
@@ -234,7 +241,20 @@
     </div>
     <div id="printContainer"></div>
 
-  
+    @*<script>
+            document.addEventListener('mousemove', function (e) {
+                var elementMouseIsOver = document.elementFromPoint(e.clientX, e.clientY);
+
+                // Log the element to the console or perform any other actions you need
+                console.log(elementMouseIsOver);
+            });
+        </script>*@
+    <script>
+        function getDivId(element) {
+            var divId = element.id;
+            console.log("Div ID: " + divId);
+        }
+    </script>
     <script>
         interact('.signature-field')
             .draggable({
@@ -293,8 +313,7 @@
         function handleDragOver(event) {
             event.preventDefault();
         }
-
-        function handleDrop(event) {
+        /*function handleDrop(event) {
             event.preventDefault();
             const fieldType = event.dataTransfer.getData('text/plain');
 
@@ -302,8 +321,9 @@
                 // For the signature field, use a div with a click event
                 const signatureField = document.createElement('div');
                 signatureField.className = 'signature-field';
-                signatureField.style.left = (event.clientX - event.target.getBoundingClientRect().left) + 'px';
-                signatureField.style.top = (event.clientY - event.target.getBoundingClientRect().top) + 'px';
+                signatureField.style.position = 'absolute';
+                signatureField.style.left = (event.clientX + window.scrollX) + 'px';
+                signatureField.style.top = (event.clientY + window.scrollY) + 'px';
 
                 // Make the new form field draggable
                 signatureField.draggable = true;
@@ -311,25 +331,40 @@
                     showSignatureModal(signatureField);
                 };
 
-                // Add the signature field to the form builder
-                document.getElementById('signlayer1').appendChild(signatureField);
+                // Add the signature field to the body
+                document.body.appendChild(signatureField);
             } else {
                 // For other fields, use the existing logic
                 const formField = document.createElement('div');
-
-                formField.className = 'textLayer';
                 formField.innerText = fieldType;
-                formField.style.left = (event.clientX - event.target.getBoundingClientRect().left - formField.clientWidth / 2) + 'px';
-                formField.style.top = (event.clientY - event.target.getBoundingClientRect().top - formField.clientHeight / 2) + 'px';
-                /*formField.style.zIndex = 5;*/
+
+                // Set the position styles
+                formField.style.position = 'absolute';
+                formField.style.left = (event.clientX + window.scrollX) + 'px';
+                formField.style.top = (event.clientY + window.scrollY) + 'px';
+
                 // Make the new form field draggable
                 formField.draggable = true;
                 formField.ondragstart = handleDragStart;
 
-                // Add the form field to the form builder
-                document.getElementById('signlayer1').appendChild(formField);
+                // Add the form field to the body
+                document.body.appendChild(formField);
             }
         }
+
+        // Attach the drop event listener to the entire document
+        document.addEventListener('drop', handleDrop);
+
+        // Prevent the default behavior for dragover and dragenter events
+        document.addEventListener('dragover', function (event) {
+            event.preventDefault();
+        });
+
+        document.addEventListener('dragenter', function (event) {
+            event.preventDefault();
+        });*/
+
+        
 
         let currentSignatureField;
 
