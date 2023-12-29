@@ -1136,12 +1136,13 @@ canvas {
 }
 
 
-.textLayer > div {
-/*mohnish*/
-  position: absolute;
-  line-height:1.3;
-  white-space:pre;
-}
+    .textLayer > div {
+        /*mohnish*/
+        color: transparent;
+        position: absolute;
+        line-height: 1.3;
+        white-space: pre;
+    }
 
 .textLayer .highlight {
   margin: -1px;

@@ -57,6 +57,7 @@ namespace SignaturePDF
 
             bundles.Add(new ScriptBundle("~/pdf.js/vd").Include(
                 "~/pdf.js/viewer.js",
+                "~/pdf.js/viewerRe.js",
                 "~/pdf.js/debugger.js"
                 ));
         }

@@ -76,7 +76,7 @@ namespace SignaturePDF.Repository
             }
             return documents;
         }
-        public void uploadDocuments(Document document)
+        public int uploadDocuments(Document document)
         {
             using (SqlConnection connection = new SqlConnection(connectionString))
             {
@@ -89,11 +89,50 @@ namespace SignaturePDF.Repository
                     command.Parameters.AddWithValue("@document", document.Documents);
                     command.Parameters.AddWithValue("@status", document.Status);
                     command.Parameters.AddWithValue("@userId_Fk",document.UserId );
-                    command.ExecuteReader();
+                    SqlParameter generatedIdParameter = new SqlParameter("@generatedId", SqlDbType.Int);
+                    generatedIdParameter.Direction = ParameterDirection.Output;
+                    command.Parameters.Add(generatedIdParameter);
+                    command.ExecuteNonQuery();
+
+                    // Get the generated ID from the output parameter
+                    int generatedId = Convert.ToInt32(generatedIdParameter.Value);
+                    return generatedId;
 
                 }
             }
         }
 
+        public void AppenDocSignDetails(DocSign signs)
+        {
+            string fieldsPagesString = string.Join(",", signs.FieldsPages);
+            string xAxisString = string.Join(",", signs.Xaxis);
+            string yAxisString = string.Join(",", signs.Yaxis);
+            using (SqlConnection connection = new SqlConnection(connectionString))
+            {
+                connection.Open();
+
+                using (SqlCommand command = new SqlCommand("InsertDocSign", connection))
+                {
+                    command.CommandType = CommandType.StoredProcedure;
+
+               
+                    command.Parameters.AddWithValue("@DocId", signs.DocId);
+                    command.Parameters.AddWithValue("@UserId", signs.UserId);
+                    command.Parameters.AddWithValue("@TotalFields", signs.TotalFields);
+                    command.Parameters.AddWithValue("@FieldsPages", fieldsPagesString);
+                    command.Parameters.AddWithValue("@Xaxis", xAxisString);
+                    command.Parameters.AddWithValue("@Yaxis", yAxisString);
+
+                    command.ExecuteNonQuery();
+                }
+            }
+
+            Console.WriteLine("Data inserted successfully!");
+        }
+
+        internal DocSign GetSignValue(int id)
+        {
+            throw new NotImplementedException();
+        }
     }
 }

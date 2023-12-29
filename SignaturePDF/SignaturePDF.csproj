@@ -125,9 +125,11 @@
     <Compile Include="Global.asax.cs">
       <DependentUpon>Global.asax</DependentUpon>
     </Compile>
+    <Compile Include="Models\DocSign.cs" />
     <Compile Include="Models\Document.cs" />
     <Compile Include="Models\Login.cs" />
     <Compile Include="Models\Registration.cs" />
+    <Compile Include="Models\SignPosition.cs" />
     <Compile Include="Models\Status.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Repository\LoginRepository.cs" />
@@ -213,6 +215,7 @@
     <Content Include="pdf.js\sign.68bf0c9.js" />
     <Content Include="pdf.js\stream.js" />
     <Content Include="pdf.js\util.js" />
+    <Content Include="pdf.js\viewerRe.js" />
     <Content Include="pdf.js\viewer.css" />
     <Content Include="pdf.js\viewer.js" />
     <Content Include="pdf.js\web.68bf0c9.js" />
@@ -257,6 +260,7 @@
     <Content Include="Views\Login\DisplayPdf1.cshtml" />
     <Content Include="Views\Home\HelloPdf.cshtml" />
     <Content Include="Views\Home\Manage.cshtml" />
+    <Content Include="Views\Login\Details.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />

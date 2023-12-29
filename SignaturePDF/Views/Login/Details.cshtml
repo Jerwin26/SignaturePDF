@@ -1,4 +1,6 @@
-﻿
+﻿@model SignaturePDF.Models.DocSign
+
+
 
 @{
     Layout = null;
@@ -24,47 +26,14 @@
     <script src="https://cdn.jsdelivr.net/npm/pdf-lib@1.14.0/dist/pdf-lib.js"></script>
 
     <style>
-        #form-builder {
-            width: 500px;
-            height: 500px;
-            border: 2px dashed #ccc;
+        #viewer {
             position: relative;
         }
 
-        .signature-field {
-            width: 150px;
-            height: 60px;
-            border: 1px solid #000;
+        #customButton {
             position: absolute;
-            cursor: pointer;
-            /* z-index: 1;*/
-        }
-
-        #signature-modal {
-            display: none;
-            position: fixed;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            background: white;
-            padding: 20px;
-            border: 1px solid #ccc;
-            z-index: 1000;
-        }
-    </style>
-
-    <style>
-        #outerContainer1 {
-            width: 70%;
-        }
-
-        #cursorCoordinatesDisplay {
-            position: fixed;
-            top: 10px;
-            left: 10px;
-            background-color: #fff;
-            padding: 5px;
-            border: 1px solid #ccc;
+            left: 651px;
+            top: 137px;
         }
     </style>
 
@@ -139,7 +108,7 @@
 
                         </div>
                         <div id="toolbarViewerRight">
-                            <input id="fileInput" class="fileInput" type="file" oncontextmenu="return false;" display: inline-block; position: fixed; right: 0; top: 0" />
+                            <input id="fileInput" class="fileInput hidden" type="file" oncontextmenu="return false;" display: inline-block; position: fixed; right: 0; top: 0" />
                             <button id="fullscreen" class="toolbarButton fullscreen hidden" title="Switch to Presentation Mode" tabindex="11" data-l10n-id="presentation_mode">
                                 <span data-l10n-id="presentation_mode_label">Presentation Mode</span>
                             </button>
@@ -149,19 +118,7 @@
                             <button id="print" class="toolbarButton print" title="Print" tabindex="13" data-l10n-id="print">
                                 <span data-l10n-id="print_label">Print</span>
                             </button>
-                            <button>
-                                <span class="form-field" draggable="true" ondragstart="handleDragStart(event)">Signature</span>
-                                @* <button class="form-field" draggable="true" id="draggableButton">Drag me!</button>*@
-                            </button>
-                            <button>
-                                <div class="form-field" draggable="true" ondragstart="handleSignatureFieldDragStart(event)">Image</div>
-                            </button>
-                            <button>
-                                <div id="Done" onclick="getInputValues()">Next</div>
-                            </button>
-                            <button>
-                                <div id="Quit" onclick="getInputValues()">Back</div>
-                            </button>
+
 
                             @*Ed-moni*@
 
@@ -208,21 +165,11 @@
                 <menuitem label="Rotate Clockwise" id="page_rotate_cw" data-l10n-id="page_rotate_cw"></menuitem>
             </menu>
             <div id="viewerContainer">
-                @*  <div id="form-builder" ondrop="handleDrop(event)" ondragover="handleDragOver(event)"></div>*@
-
-                <!--<div id="toolbox">
-                    <div class="form-field" draggable="true" ondragstart="handleDragStart(event)">Text Field</div>
-                    <div class="form-field" draggable="true" ondragstart="handleDragStart(event)">Checkbox</div>
-                    <div class="form-field" draggable="true" ondragstart="handleSignatureFieldDragStart(event)">Signature Field</div>-->
-                <!-- Add more form fields to the toolbox as needed -->
-                <!--</div>-->
-
-                <div id="signature-modal">
-                    <label for="signature-image">Upload Signature Image:</label>
-                    <input type="file" id="signature-image" accept="image/*">
-                    <button onclick="addSignature()">Add Signature</button>
+               
+                
+                <div id="viewer" contextmenu="viewerContextMenu">
+                    <button id="customButton" onclick="handleButtonClick()">Click Me</button>
                 </div>
-                <div id="viewer" contextmenu="viewerContextMenu"></div>
 
             </div>
             <div id="loadingBox">
@@ -251,206 +198,9 @@
         </div>
     </div>
     <div id="printContainer"></div>
-    <script>
-        // Get the draggable button
-        var draggableButton = document.getElementById('draggableButton');
-
-        // Variables to store the offset between the mouse position and the button's position
-        var offsetX, offsetY;
-
-        // Flag to track whether dragging is in progress
-        var isDragging = false;
-
-        // Event listener for mouse down on the draggable button
-        draggableButton.addEventListener('mousedown', function (event) {
-            // Set the flag to indicate dragging has started
-            isDragging = true;
-
-            // Calculate the offset between the mouse position and the button's position
-            offsetX = event.clientX - draggableButton.getBoundingClientRect().left;
-            offsetY = event.clientY - draggableButton.getBoundingClientRect().top;
-
-            // Update the cursor style
-            draggableButton.style.cursor = 'grabbing';
-
-            // Prevent default to avoid unwanted text selection
-            event.preventDefault();
-        });
-
-        // Event listener for mouse move on the document
-        document.addEventListener('mousemove', function (event) {
-            // Check if dragging is in progress
-            if (isDragging) {
-                // Calculate the new position of the button based on the mouse position and offset
-                var newX = event.clientX - offsetX;
-                var newY = event.clientY - offsetY;
-
-                // Update the position of the button
-                draggableButton.style.left = newX + 'px';
-                draggableButton.style.top = newY + 'px';
-            }
-        });
-
-        // Event listener for mouse up on the document
-        document.addEventListener('mouseup', function () {
-            // Reset the flag to indicate dragging has stopped
-            isDragging = false;
-
-            // Reset the cursor style
-            draggableButton.style.cursor = 'grab';
-        });
-    </script>
-    @*<script>
-            document.addEventListener('mousemove', function (e) {
-                var elementMouseIsOver = document.elementFromPoint(e.clientX, e.clientY);
-
-                // Log the element to the console or perform any other actions you need
-                console.log(elementMouseIsOver);
-            });
-        </script>*@
-    <script>
-        function getDivId(element) {
-            var divId = element.id;
-            console.log("Div ID: " + divId);
-        }
-    </script>
-    <script>
-        interact('.signature-field')
-            .draggable({
-                onmove: function (event) {
-                    const target = event.target;
-                    const x = (parseFloat(target.getAttribute('data-x')) || 0) + event.dx;
-                    const y = (parseFloat(target.getAttribute('data-y')) || 0) + event.dy;
-
-                    target.style.transform = `translate(${x}px, ${y}px)`;
-                    target.setAttribute('data-x', x);
-                    target.setAttribute('data-y', y);
-                },
-            })
-            .resizable({
-                edges: { left: true, right: true, bottom: true, top: true },
-                restrictEdges: {
-                    outer: 'parent',
-                    endOnly: true,
-                },
-                restrictSize: {
-                    min: { width: 50, height: 30 },
-                },
-                inertia: true,
-            })
-            .on('resizemove', function (event) {
-                const target = event.target;
-                const x = (parseFloat(target.getAttribute('data-x')) || 0);
-                const y = (parseFloat(target.getAttribute('data-y')) || 0);
-
-                target.style.width = event.rect.width + 'px';
-                target.style.height = event.rect.height + 'px';
-
-                target.setAttribute('data-x', x);
-                target.setAttribute('data-y', y);
-            });
-
-        function handleDragStart(event) {
-            event.dataTransfer.setData('text/plain', event.target.innerText);
-        }
-
-        function handleSignatureFieldDragStart(event) {
-            event.dataTransfer.setData('text/plain', 'Signature Field');
-        }
-
-        function showSignatureModal(signatureField) {
-            document.getElementById('signature-modal').style.display = 'block';
-
-            // Set the current signature field being edited
-            currentSignatureField = signatureField;
-        }
-
-        function hideSignatureModal() {
-            document.getElementById('signature-modal').style.display = 'none';
-        }
-
-        function handleDragOver(event) {
-            event.preventDefault();
-        }
-
-        function getData() {
-            // Get the content of the div with id "inputfield"
-            var inputfieldContent = $('#inputfield').text();
-
-            // Print the content to the console (you can modify this part based on your needs)
-            console.log(inputfieldContent);
-        }
-       
-        /*function handleDrop(event) {
-            event.preventDefault();
-            const fieldType = event.dataTransfer.getData('text/plain');
-
-            if (fieldType === 'Signature Field') {
-                // For the signature field, use a div with a click event
-                const signatureField = document.createElement('div');
-                signatureField.className = 'signature-field';
-                signatureField.style.position = 'absolute';
-                signatureField.style.left = (event.clientX + window.scrollX) + 'px';
-                signatureField.style.top = (event.clientY + window.scrollY) + 'px';
-
-                // Make the new form field draggable
-                signatureField.draggable = true;
-                signatureField.onclick = function () {
-                    showSignatureModal(signatureField);
-                };
-
-                // Add the signature field to the body
-                document.body.appendChild(signatureField);
-            } else {
-                // For other fields, use the existing logic
-                const formField = document.createElement('div');
-                formField.innerText = fieldType;
-
-                // Set the position styles
-                formField.style.position = 'absolute';
-                formField.style.left = (event.clientX + window.scrollX) + 'px';
-                formField.style.top = (event.clientY + window.scrollY) + 'px';
-
-                // Make the new form field draggable
-                formField.draggable = true;
-                formField.ondragstart = handleDragStart;
-
-                // Add the form field to the body
-                document.body.appendChild(formField);
-            }
-        }
-
-        // Attach the drop event listener to the entire document
-        document.addEventListener('drop', handleDrop);
-
-        // Prevent the default behavior for dragover and dragenter events
-        document.addEventListener('dragover', function (event) {
-            event.preventDefault();
-        });
-
-        document.addEventListener('dragenter', function (event) {
-            event.preventDefault();
-        });*/
-
-
-
-        let currentSignatureField;
-
-        function addSignature() {
-            const signatureImageInput = document.getElementById('signature-image');
-            const signatureImage = signatureImageInput.files[0];
-
-            if (signatureImage) {
-                // Set the background image of the current signature field
-                currentSignatureField.style.backgroundImage = `url(${URL.createObjectURL(signatureImage)})`;
-
-                hideSignatureModal();
-            } else {
-                alert('Please select a signature image.');
-            }
-        }
-    </script>
+    
 
 </body>
 </html>
+
 
