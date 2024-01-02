@@ -13,8 +13,10 @@ namespace SignaturePDF.Models
         public int UserId { get; set; }
         public int TotalFields { get; set; }
         public List<int> FieldsPages { get; set; }
-        public List<int> Xaxis {get;set;}
-        public List<int> Yaxis { get; set; }
+        public List<int> Top {get;set;}
+        public List<int> Right { get; set; }
+        public List<int> Bottom { get; set; }
+        public List<int> Left { get; set; }
 
     }
 }

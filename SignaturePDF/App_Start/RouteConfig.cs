@@ -17,9 +17,10 @@ namespace SignaturePDF
                 name: "Default",
                 url: "{controller}/{action}/{id}",
              //defaults: new { controller = "Home", action = "Contact", id = UrlParameter.Optional }
-             // defaults: new { controller = "Login", action = "Index", id = UrlParameter.Optional }
-             defaults: new { controller = "Login", action = "DisplayPdf1", id = UrlParameter.Optional }
-                );
+             defaults: new { controller = "Login", action = "Index", id = UrlParameter.Optional }
+              //defaults: new { controller = "Login", action = "DisplayPdf1", id = UrlParameter.Optional }
+           // defaults: new { controller = "Login", action = "Details", id = UrlParameter.Optional } 
+             );
         }
     }
 }

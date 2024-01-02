@@ -118,13 +118,17 @@ namespace SignaturePDF.Controllers
            
             DocSign signs = new DocSign();
             List<int> FielPages = new List<int>();
-            List<int> Xaxis = new List<int>();
-            List<int> Yaxis = new List<int>();
+            List<int> Top = new List<int>();
+            List<int> Right = new List<int>();
+            List<int> Bottom = new List<int>();
+            List<int> Left = new List<int>();
             foreach (var inputField in inputValues)
             {
                 FielPages.Add(inputField.id);
-                Xaxis.Add(inputField.insetTop);
-                Yaxis.Add(inputField.insetLeft);
+                Top.Add(inputField.insetTop);
+                Right.Add(inputField.insetRight);
+                Bottom.Add(inputField.insetBottom);
+                Left.Add(inputField.insetLeft);
                 /* var id = inputField.id;
                  var insetTop = inputField.insetTop;
                  var insetRight = inputField.insetRight;
@@ -137,8 +141,10 @@ namespace SignaturePDF.Controllers
             signs.DocId = Session["DocId"] as int? ?? 0;
             signs.TotalFields = FielPages.Count;
             signs.FieldsPages = FielPages;
-            signs.Yaxis = Yaxis;
-            signs.Xaxis= Xaxis;
+            signs.Top = Top;
+            signs.Right= Right;
+            signs.Bottom = Bottom;
+            signs.Left = Left;
             LoginRepository loginRepository = new LoginRepository();
             loginRepository.AppenDocSignDetails(signs);
             // Return a response if necessary
@@ -146,15 +152,23 @@ namespace SignaturePDF.Controllers
         }
         public ActionResult Details(int id)
         {
-            LoginRepository loginRepository =new  LoginRepository();
-            // DocSign docSign= loginRepository.GetSignValue(id);
-            DocSign signs = new DocSign();
-            signs.FieldsPages = new List<int> { 1 };
-            signs.Xaxis = new List<int> { 651 };
-            signs.Yaxis = new List<int> { 137 };
+            LoginRepository loginRepository = new LoginRepository();
+            DocSign signs = loginRepository.GetSignValue(id);
+         
             ViewBag.filePath = "/SamplePDF/generated13.pdf";
             return View(signs);
         }
+        /* public ActionResult Details()
+         {
+             LoginRepository loginRepository = new LoginRepository();
+             DocSign signs = loginRepository.GetSignValue(7);
+             *//* DocSign signs = new DocSign();
+              signs.FieldsPages = new List<int> { 1 };
+              signs.Xaxis = new List<int> { 651 };
+              signs.Yaxis = new List<int> { 137 };*//*
+             ViewBag.filePath = "/SamplePDF/generated13.pdf";
+             return View(signs);
+         }*/
 
     }
 }

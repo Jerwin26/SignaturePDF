@@ -3405,6 +3405,7 @@ function getInputValues() {
 
         // Extracting required information using regular expressions
         var htmlContent = inputField.outerHTML;
+        console.log(htmlContent);
         var idMatch = htmlContent.match(/id="([^"]+)"/);
         var styleMatch = htmlContent.match(/style="inset:\s?(\d+)px\s?(\d+)px\s?(\d+)px\s?(\d+)px;"/);
 
@@ -3490,5 +3491,69 @@ function extractNumberFromId(childId) {
         // No numeric part found in the ID
         console.error("No numeric part found in the ID.");
         return null;
+    }
+}
+function appendValues(model) {
+    console.log(model.TotalFields);
+    console.log(model);
+
+    // Loop based on TotalFields
+    for (var i = 1; i <= model.TotalFields; i++) {
+        console.log(i + "-loop");
+
+        console.log(model.Top[i-1] + "-loop");
+        console.log(model.FieldsPages[i-1] + "-loop");
+        var signLayer1 = document.getElementById("signlayer" + model.FieldsPages[i-1]);
+        var newDiv = document.createElement("div");
+        newDiv.id = "inputfield" + i;
+        newDiv.setAttribute("dir", "ltr");
+        newDiv.setAttribute("data-font-name", "g_font_p0_1");
+        newDiv.setAttribute("data-canvas-width", "793");
+        newDiv.setAttribute("draggable", "true");
+        newDiv.style.cssText = "inset: " + model.Top[i-1] + "px " + model.Right[i-1] + "px " + model.Bottom[i-1] + "px " + model.Left[i-1] + "px;";
+
+        var newButton = document.createElement("button");
+        
+        newButton.textContent = "Add Signature!";
+        var fileInput = document.createElement("input");
+        fileInput.type = "file";
+        fileInput.accept = "image/*";
+        fileInput.style.display = "none"; // Hide the input element
+        fileInput.addEventListener("change", handleFileSelect.bind(null, newDiv)); // Attach event listener
+
+        newButton.addEventListener("click", function () {
+            // Trigger the click event of the hidden file input
+            fileInput.click();
+        });
+
+        newDiv.appendChild(newButton);
+        console.log(signLayer1);
+        signLayer1.appendChild(newDiv);
+    }
+    function handleFileSelect(containerDiv, event) {
+        var file = event.target.files[0];
+
+        if (file) {
+            var reader = new FileReader();
+
+            reader.onload = function (e) {
+                // Create an image element and set its source to the selected file
+                var image = document.createElement("img");
+                image.src = e.target.result;
+                // Adjust the width as needed
+
+                // Clear the existing content of the containerDiv
+                containerDiv.innerHTML = "";
+
+                // Append the image to the containerDiv
+                containerDiv.appendChild(image);
+                interact(image).resizable({
+                    edges: { left: true, right: true, bottom: true, top: true }
+                });
+            };
+
+            // Read the selected file as a data URL
+            reader.readAsDataURL(file);
+        }
     }
 }

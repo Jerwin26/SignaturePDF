@@ -6,6 +6,7 @@ using System.Data;
 using System.Linq;
 using System.Web;
 using System.Web.UI.WebControls;
+using Newtonsoft.Json;
 
 namespace SignaturePDF.Repository
 {
@@ -105,8 +106,10 @@ namespace SignaturePDF.Repository
         public void AppenDocSignDetails(DocSign signs)
         {
             string fieldsPagesString = string.Join(",", signs.FieldsPages);
-            string xAxisString = string.Join(",", signs.Xaxis);
-            string yAxisString = string.Join(",", signs.Yaxis);
+            string Top = string.Join(",", signs.Top);
+            string Right = string.Join(",", signs.Right);
+            string Bottom = string.Join(",", signs.Bottom);
+            string Left = string.Join(",", signs.Left);
             using (SqlConnection connection = new SqlConnection(connectionString))
             {
                 connection.Open();
@@ -120,8 +123,10 @@ namespace SignaturePDF.Repository
                     command.Parameters.AddWithValue("@UserId", signs.UserId);
                     command.Parameters.AddWithValue("@TotalFields", signs.TotalFields);
                     command.Parameters.AddWithValue("@FieldsPages", fieldsPagesString);
-                    command.Parameters.AddWithValue("@Xaxis", xAxisString);
-                    command.Parameters.AddWithValue("@Yaxis", yAxisString);
+                    command.Parameters.AddWithValue("@Toppx", Top);
+                    command.Parameters.AddWithValue("@Rightpx", Right);
+                    command.Parameters.AddWithValue("@Bottompx", Bottom);
+                    command.Parameters.AddWithValue("@Leftpx", Left);
 
                     command.ExecuteNonQuery();
                 }
@@ -130,9 +135,48 @@ namespace SignaturePDF.Repository
             Console.WriteLine("Data inserted successfully!");
         }
 
-        internal DocSign GetSignValue(int id)
+        public DocSign GetSignValue(int id)
         {
-            throw new NotImplementedException();
+              using (SqlConnection connection = new SqlConnection(connectionString))
+                {
+                    connection.Open();
+
+                    using (SqlCommand command = new SqlCommand("GetDocSignById", connection))
+                    {
+                        command.CommandType = CommandType.StoredProcedure;
+
+                        // Add the parameter for the stored procedure
+                        command.Parameters.AddWithValue("@DocSignId", id);
+
+                        using (SqlDataReader reader = command.ExecuteReader())
+                        {
+                            if (reader.Read())
+                            {
+                                return new DocSign
+                                {
+                                    Id = reader.GetInt32(reader.GetOrdinal("Id")),
+                                    DocId = reader.GetInt32(reader.GetOrdinal("DocId")),
+                                    UserId = reader.GetInt32(reader.GetOrdinal("UserId")),
+                                    TotalFields = reader.GetInt32(reader.GetOrdinal("TotalFields")),
+                                    FieldsPages = DeserializeJsonList<int>(reader.GetString(reader.GetOrdinal("FieldsPages"))),
+                                    Top = DeserializeJsonList<int>(reader.GetString(reader.GetOrdinal("Toppx"))),
+                                    Right = DeserializeJsonList<int>(reader.GetString(reader.GetOrdinal("Rightpx"))),
+                                    Bottom = DeserializeJsonList<int>(reader.GetString(reader.GetOrdinal("Bottompx"))),
+                                    Left = DeserializeJsonList<int>(reader.GetString(reader.GetOrdinal("Leftpx")))
+                                };
+                            }
+                        }
+                    }
+
+                  return null;
+                }
+            
+        }
+
+        private List<int> DeserializeJsonList<T>(string json)
+        {
+                return json.Split(',').Select(int.Parse).ToList();
+          
         }
     }
 }
