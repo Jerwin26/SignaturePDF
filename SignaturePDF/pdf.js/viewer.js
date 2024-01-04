@@ -3447,6 +3447,11 @@ function sendToMvcAction(inputValues) {
         .then(response => response.json())
         .then(data => {
             console.log('Success:', data);
+
+            alert('Created sucessfully');
+
+            // Redirect to another page after clicking OK on the alert
+            window.location.href = '/Login/UserDoc';
         })
         .catch((error) => {
             console.error('Error:', error);
@@ -3515,45 +3520,86 @@ function appendValues(model) {
         var newButton = document.createElement("button");
         
         newButton.textContent = "Add Signature!";
-        var fileInput = document.createElement("input");
-        fileInput.type = "file";
-        fileInput.accept = "image/*";
-        fileInput.style.display = "none"; // Hide the input element
-        fileInput.addEventListener("change", handleFileSelect.bind(null, newDiv)); // Attach event listener
-
+        newButton.id = "ButtonEle" + i;
         newButton.addEventListener("click", function () {
-            // Trigger the click event of the hidden file input
+            // Handle the button click event
+            var clickedDivId = event.currentTarget.parentNode.id;
+            console.log("Clicked div id: " + clickedDivId);
+            var fileInput = document.createElement("input");
+            fileInput.type = "file";
+            fileInput.accept = "image/*";
+            fileInput.style.display = "none"; // Hide the input element
+            fileInput.addEventListener("change", handleFileSelect.bind(null, clickedDivId));
             fileInput.click();
         });
-
         newDiv.appendChild(newButton);
         console.log(signLayer1);
         signLayer1.appendChild(newDiv);
     }
-    function handleFileSelect(containerDiv, event) {
-        var file = event.target.files[0];
+    
+}
+function handleFileSelect(containerDiv, event) {
+    var file = event.target.files[0];
+    console.log(containerDiv);
+    console.log(event);
+    if (file) {
+        var reader = new FileReader();
 
-        if (file) {
-            var reader = new FileReader();
+        reader.onload = function (e) {
+            var image = document.createElement("img");
+            image.src = e.target.result;
+            console.log(image);
+            var containerDiv1 = document.getElementById(containerDiv);
+            containerDiv1.innerHTML = "";
+            containerDiv1.appendChild(image);
+           
+        };
 
-            reader.onload = function (e) {
-                // Create an image element and set its source to the selected file
-                var image = document.createElement("img");
-                image.src = e.target.result;
-                // Adjust the width as needed
-
-                // Clear the existing content of the containerDiv
-                containerDiv.innerHTML = "";
-
-                // Append the image to the containerDiv
-                containerDiv.appendChild(image);
-                interact(image).resizable({
-                    edges: { left: true, right: true, bottom: true, top: true }
-                });
-            };
-
-            // Read the selected file as a data URL
-            reader.readAsDataURL(file);
-        }
+        // Read the selected file as a data URL
+        reader.readAsDataURL(file);
     }
 }
+
+$(document).ready(function () {
+    $('#generatePdfButton').click(function () {
+        var outerHtml1 = $('#viewer')[0].outerHTML;
+        var outerHtmlq = outerHtml1;
+        var elements = {
+            devEle: outerHtmlq
+        };
+        console.log(elements);
+        $.ajax({
+            url: 'Login/SetAndProcessHtml',
+            type: 'POST',
+            contentType: 'application/json; charset=utf-8',
+            data: JSON.stringify({ elements: elements }),
+            dataType: 'json',
+            success: function (result) {
+                if (result.success) {
+                    // Proceed to process the HTML with additionalData
+                    processHtml(result.additionalData);
+                } else {
+                    console.log(result.message);
+                }
+            },
+            error: function () {
+                console.log('An error occurred during the AJAX request');
+            }
+        });
+    });
+
+    // Function to process HTML after TempData is set
+    function processHtml() {
+        // Make an AJAX request to the controller action
+        $.ajax({
+            url: '@Url.Action("ProcessHtml", "Login")',
+            type: 'POST',
+            success: function (result) {
+                console.log(result);
+            },
+            error: function () {
+                console.log('An error occurred during the AJAX request');
+            }
+        });
+    }
+});

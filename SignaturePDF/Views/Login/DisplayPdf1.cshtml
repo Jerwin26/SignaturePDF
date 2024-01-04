@@ -24,6 +24,19 @@
     <script src="https://cdn.jsdelivr.net/npm/pdf-lib@1.14.0/dist/pdf-lib.js"></script>
 
     <style>
+        #viewerContainer {
+            position: relative;
+            z-index: 0; /* Adjust the value as needed */
+        }
+
+        #newContainer {
+            z-index: 1; /* Adjust the z-index as needed */
+            position: fixed;
+            top: 70px;
+            right: 20px;
+            width: 17%;
+            background-color: aqua;
+        }
         #form-builder {
             width: 500px;
             height: 500px;
@@ -94,6 +107,28 @@
         </div>
 
         <div id="mainContainer">
+            <div id="newContainer">
+                <h2>Tool Bar</h2>
+                <button>
+                    <div class="form-field" draggable="true" ondragstart="handleDragStart(event)">Add Signature</div>
+                </button> <button>
+                    <div class="form-field" draggable="true" ondragstart="handleDragStart(event)">Name</div>
+                </button> <button>
+                    <div class="form-field" draggable="true" ondragstart="handleDragStart(event)">Email</div>
+                </button>
+                <button>
+                    <div class="form-field" draggable="true" ondragstart="handleSignatureFieldDragStart(event)">Image</div>
+                </button>
+                <button id="download" class="toolbarButton download" title="Download" tabindex="14" data-l10n-id="download">
+                    <span data-l10n-id="download_label">Download</span>
+                </button>
+                <button>
+                    <div id="Done" onclick="getInputValues()">Next</div>
+                </button>
+                <button>
+                    <div id="Quit" onclick="getInputValues()">Back</div>
+                </button>
+            </div>
             <div class="findbar hidden doorHanger" id="findbar">
                 <label for="findInput" class="toolbarLabel" data-l10n-id="find_label">Find:</label>
                 <input id="findInput" class="toolbarField" tabindex="20">
@@ -211,9 +246,9 @@
                 @*  <div id="form-builder" ondrop="handleDrop(event)" ondragover="handleDragOver(event)"></div>*@
 
                 <!--<div id="toolbox">
-                    <div class="form-field" draggable="true" ondragstart="handleDragStart(event)">Text Field</div>
-                    <div class="form-field" draggable="true" ondragstart="handleDragStart(event)">Checkbox</div>
-                    <div class="form-field" draggable="true" ondragstart="handleSignatureFieldDragStart(event)">Signature Field</div>-->
+            <div class="form-field" draggable="true" ondragstart="handleDragStart(event)">Text Field</div>
+            <div class="form-field" draggable="true" ondragstart="handleDragStart(event)">Checkbox</div>
+            <div class="form-field" draggable="true" ondragstart="handleSignatureFieldDragStart(event)">Signature Field</div>-->
                 <!-- Add more form fields to the toolbox as needed -->
                 <!--</div>-->
 

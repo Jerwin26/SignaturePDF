@@ -21,10 +21,9 @@
         PDFJS.workerSrc = url;
 
     </script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.10.377/pdf.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/interactjs@1.10.13/dist/interact.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/pdf-lib@1.14.0/dist/pdf-lib.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/interact.js/1.10.11/interact.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.0.379/pdf.min.mjs"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+
 
     <style>
         #viewer {
@@ -40,9 +39,11 @@
 
 
     @Scripts.Render("~/pdf.js/vd")
-</head>
-<body>
 
+</head>
+
+<body>
+    
     <div id="outerContainer">
         <div id="sidebarContainer">
             <div id="toolbarSidebar">
@@ -124,7 +125,10 @@
                                 <div id="Append" onclick="appendValues(@Newtonsoft.Json.JsonConvert.SerializeObject(Model))">Show</div>
                             </button>
                             @*Ed-moni*@
+                            @* <button id="downloadPdf">Download Modified PDF</button>*@
+                            <button id="generatePdfButton">Download</button>
 
+                            <!-- PDF-lib script (Make sure to include this in your project) -->
                             <button id="download" class="toolbarButton download" title="Download" tabindex="14" data-l10n-id="download">
                                 <span data-l10n-id="download_label">Download</span>
                             </button>
@@ -168,10 +172,10 @@
                 <menuitem label="Rotate Clockwise" id="page_rotate_cw" data-l10n-id="page_rotate_cw"></menuitem>
             </menu>
             <div id="viewerContainer">
-               
-                
+
+
                 <div id="viewer" contextmenu="viewerContextMenu">
-                  
+
                 </div>
 
             </div>
@@ -199,9 +203,118 @@
             </div>
 
         </div>
+       
+
+        @*<script>
+                  /* $(document).ready(function () {
+                       // Button click event or any other trigger event
+                       $("#generatePdfButton").click(function () {
+                           // Get the content from a textarea or any other element
+
+                           var contentElement = document.getElementById("viewer");
+                           var content = "moni";
+                           console.log(content);
+                           $.ajax({
+                               url: '/Login/Index1',  // Update 'ControllerName' with your actual controller name
+                               type: 'GET',
+                               data: { content: content },
+                               success: function (response) {
+                                   // 'response' will contain the PDF file
+                                   // You can handle the response here, for example, display it or download it
+                                   var blob = new Blob([response], { type: 'application/pdf' });
+                                   var link = document.createElement('a');
+                                   link.href = window.URL.createObjectURL(blob);
+                                   link.download = 'GeneratedPdf.pdf';
+                                   link.click();
+                               },
+                               error: function (error) {
+                                   console.error('Error:', error);
+                               }
+                           });
+                       });
+                   });*/
+                   $(document).ready(function () {
+                       $('#generatePdfButton').click(function () {
+                   // Get the outerHTML value
+                           var outerHtml = $('#viewer')[0].outerHTML;
+
+                   // Make an AJAX request to the controller action
+                   $.ajax({
+                       url: '@Url.Action("ProcessHtml", "YourController")',
+                       type: 'GET',
+                       data: { outerHtml: outerHtml },
+                       dataType: 'json', // Specify the expected data type
+                       success: function (result) {
+                           console.log(result);
+                       },
+                       error: function (xhr, status, error) {
+                           console.log('AJAX Error: ' + status + ' - ' + error);
+                           console.log(xhr.responseText); // Log the response text for more details
+                       }
+                   });
+               });
+           });
+
+
+
+                   /* var content = $("#viewer").val();
+        console.log(content);*/
+               </script>*@
+
     </div>
     <div id="printContainer"></div>
-    
+
+    @*<script src="https://unpkg.com/pdf-lib@1.11.0/dist/pdf-lib.js"></script>
+        <script>
+            document.addEventListener('DOMContentLoaded', async function () {
+                try {
+                    console.log('moni-dm');
+
+                    // Get the PDF viewer instance
+                    const pdfViewer = document.getElementById('viewer');
+
+                    // Check if pdf-lib is defined
+                    if (typeof PDFLib === 'undefined') {
+                        throw new Error('pdf-lib library not found. Make sure it is included in your project.');
+                    }
+
+                    // Get the current PDF data from the viewer
+                    const currentPdfData = await pdfViewer.getPDFData();
+
+                    // Create a PDF document
+                    const pdfDoc = await PDFLib.PDFDocument.load(currentPdfData);
+
+                    // Example: Add text to the first page
+                    const firstPage = pdfDoc.getPage(0);
+                    firstPage.drawText('Your added text', { x: 50, y: 50, fontColor: PDFLib.rgb(0, 0, 0) });
+
+                    // Save the modified PDF as a Blob
+                    const modifiedPdfBytes = await pdfDoc.save();
+
+                    // Create a Blob from the bytes
+                    const modifiedPdfBlob = new Blob([modifiedPdfBytes], { type: 'application/pdf' });
+
+                    // Create a link element
+                    const link = document.createElement('a');
+                    link.href = URL.createObjectURL(modifiedPdfBlob);
+
+                    // Set the download attribute with the desired file name
+                    link.download = 'modified_file.pdf';
+
+                    // Append the link to the document body
+                    document.body.appendChild(link);
+
+                    // Trigger a click event on the link to initiate the download
+                    link.click();
+
+                    // Remove the link from the document body
+                    document.body.removeChild(link);
+                } catch (error) {
+                    console.error('An error occurred:', error);
+                    // Handle the error as needed
+                }
+            });
+        </script>   *@
 
 </body>
 </html>

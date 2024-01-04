@@ -1,4 +1,6 @@
-﻿using SignaturePDF.Models;
+﻿using HtmlAgilityPack;
+using IronPdf;
+using SignaturePDF.Models;
 using SignaturePDF.Repository;
 using System;
 using System.Collections.Generic;
@@ -6,6 +8,9 @@ using System.IO;
 using System.Linq;
 using System.Web;
 using System.Web.Mvc;
+using System.Web.UI.WebControls;
+using System.Xml;
+using Login = SignaturePDF.Models.Login;
 
 namespace SignaturePDF.Controllers
 {
@@ -95,14 +100,14 @@ namespace SignaturePDF.Controllers
             }
 
             // Combine the folder path with the desired file name
-            string filePath = Path.Combine(folderPath, "generated13.pdf");
+            string filePath = Path.Combine(folderPath, "generated15.pdf");
 
             // Write the byte array to the file
             System.IO.File.WriteAllBytes(filePath, model.Documents);
 
             // Set the file path in ViewBag for later use in the view
             //ViewBag.filePath = "/SamplePDF/generated12.pdf";
-            ViewBag.filePath = "/SamplePDF/generated13.pdf";
+            ViewBag.filePath = "/SamplePDF/generated15.pdf";
             return View();
             // Pass the model to the view
            // return View(model);
@@ -154,21 +159,123 @@ namespace SignaturePDF.Controllers
         {
             LoginRepository loginRepository = new LoginRepository();
             DocSign signs = loginRepository.GetSignValue(id);
-         
-            ViewBag.filePath = "/SamplePDF/generated13.pdf";
+
+            ViewBag.filePath = "/SamplePDF/generated15.pdf";
             return View(signs);
         }
-        /* public ActionResult Details()
-         {
-             LoginRepository loginRepository = new LoginRepository();
-             DocSign signs = loginRepository.GetSignValue(7);
-             *//* DocSign signs = new DocSign();
-              signs.FieldsPages = new List<int> { 1 };
-              signs.Xaxis = new List<int> { 651 };
-              signs.Yaxis = new List<int> { 137 };*//*
-             ViewBag.filePath = "/SamplePDF/generated13.pdf";
-             return View(signs);
-         }*/
+        /*public ActionResult Details()
+        {
+            LoginRepository loginRepository = new LoginRepository();
+            DocSign signs = loginRepository.GetSignValue(1);
+
+            ViewBag.filePath = "/SamplePDF/generated14.pdf";
+            return View(signs);
+        }*/
+        [HttpGet]
+        public ActionResult Index1(string content)
+        {
+            ChromePdfRenderer renderer = new ChromePdfRenderer();
+            /*renderer.RenderingOptions.FirstPageNumber = 1;
+            // Header options
+            renderer.RenderingOptions.TextHeader.DrawDividerLine = true;
+            renderer.RenderingOptions.TextHeader.CenterText = "{url}";
+            renderer.RenderingOptions.TextHeader.Font = IronSoftware.Drawing.FontTypes.Helvetica;
+            renderer.RenderingOptions.TextHeader.FontSize = 12;
+            // Footer options
+            renderer.RenderingOptions.TextFooter.DrawDividerLine = true;
+            renderer.RenderingOptions.TextHeader.Font = IronSoftware.Drawing.FontTypes.Arial;
+            renderer.RenderingOptions.TextFooter.FontSize = 10;
+            renderer.RenderingOptions.TextFooter.LeftText = "{date} {time}";
+            renderer.RenderingOptions.TextFooter.RightText = "{page} of {total-pages}";*/
+            PdfDocument pdf = renderer.RenderHtmlAsPdf(content);
+            string filePath = Server.MapPath("~/App_Data/html-string.pdf");
+            pdf.SaveAs(filePath);
+            var PDF = IronPdf.ChromePdfRenderer.StaticRenderUrlAsPdf(new Uri("https://localhost:44348/Login/Details"));
+            return File(PDF.BinaryData, "application/pdf", "Wiki.Pdf");
+        }
+        [HttpPost]
+        public ActionResult ProcessHtml()
+        {
+            string outerHtml = TempData["OuterHtml"] as string;
+
+            // Your logic to process the outerHtml here
+
+            // For example, you can return a JSON result
+            return Json(new { success = true, message = "Html processed successfully" });
+        }
+
+        [HttpPost]
+        public ActionResult SetTempData(Elements outerHtml)
+        {
+            try
+            {
+                TempData["OuterHtml"] = outerHtml;
+                return Json(new { success = true, message = "TempData set successfully" });
+            }
+            catch (Exception ex)
+            {
+                /*ChromePdfRenderer renderer = new ChromePdfRenderer();
+     /*renderer.RenderingOptions.FirstPageNumber = 1;
+     // Header options
+     renderer.RenderingOptions.TextHeader.DrawDividerLine = true;
+     renderer.RenderingOptions.TextHeader.CenterText = "{url}";
+     renderer.RenderingOptions.TextHeader.Font = IronSoftware.Drawing.FontTypes.Helvetica;
+     renderer.RenderingOptions.TextHeader.FontSize = 12;
+     // Footer options
+     renderer.RenderingOptions.TextFooter.DrawDividerLine = true;
+     renderer.RenderingOptions.TextHeader.Font = IronSoftware.Drawing.FontTypes.Arial;
+     renderer.RenderingOptions.TextFooter.FontSize = 10;
+     renderer.RenderingOptions.TextFooter.LeftText = "{date} {time}";
+     renderer.RenderingOptions.TextFooter.RightText = "{page} of {total-pages}";*/
+               /* PdfDocument pdf = renderer.RenderHtmlAsPdf(content);
+                string filePath = Server.MapPath("~/App_Data/html-string.pdf");
+                pdf.SaveAs(filePath);
+                var PDF = IronPdf.ChromePdfRenderer.StaticRenderUrlAsPdf(new Uri("https://localhost:44348/Login/Details"));
+                //return File(PDF.BinaryData, "application/pdf", "Wiki.Pdf");
+                */
+                // Log the exception for further analysis*/
+                // You can use a logging framework like Serilog or log to a file
+                Console.WriteLine(ex.Message);
+                return Json(new { success = false, message = "An error occurred while setting TempData" });
+            }
+        }
+        [HttpPost]
+        public ActionResult SetAndProcessHtml(Elements elements)
+        {
+            try
+            {
+                string outerHtml = elements.devEle;
+                HtmlDocument doc = new HtmlDocument();
+                doc.LoadHtml(elements.devEle);
+                HtmlNode viewerElement = doc.DocumentNode.SelectSingleNode("//div[@id='viewer']");
+                string htmlStringWithoutBackslashes = outerHtml.Replace("\\", "");
+                Console.WriteLine(viewerElement.OuterHtml);
+                ChromePdfRenderer renderer = new ChromePdfRenderer();
+                PdfDocument pdf = renderer.RenderHtmlAsPdf(htmlStringWithoutBackslashes);
+                string filePath = Server.MapPath("~/App_Data/html-string.pdf");
+                pdf.SaveAs(filePath);
+                var responseData = new
+                {
+                    success = true,
+                    message = "Html processed successfully",
+                    additionalData = "Your additional data here"
+                };
+
+                return Json(responseData);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+
+                var errorResponse = new
+                {
+                    success = false,
+                    message = "An error occurred while processing Html"
+                };
+
+                return Json(errorResponse);
+            }
+        }
 
     }
 }
