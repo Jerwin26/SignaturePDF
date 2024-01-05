@@ -3544,7 +3544,7 @@ function sendToMvcActionUpdate(inputValues) {
         .then(data => {
             console.log('Success:', data);
 
-            alert('Created sucessfully');
+            alert('Updated sucessfully!');
 
             // Redirect to another page after clicking OK on the alert
             window.location.href = '/Login/UserDoc';
