@@ -118,9 +118,37 @@ namespace SignaturePDF.Repository
                 {
                     command.CommandType = CommandType.StoredProcedure;
 
-               
                     command.Parameters.AddWithValue("@DocId", signs.DocId);
                     command.Parameters.AddWithValue("@UserId", signs.UserId);
+                    command.Parameters.AddWithValue("@TotalFields", signs.TotalFields);
+                    command.Parameters.AddWithValue("@FieldsPages", fieldsPagesString);
+                    command.Parameters.AddWithValue("@Toppx", Top);
+                    command.Parameters.AddWithValue("@Rightpx", Right);
+                    command.Parameters.AddWithValue("@Bottompx", Bottom);
+                    command.Parameters.AddWithValue("@Leftpx", Left);
+
+                    command.ExecuteNonQuery();
+                }
+            }
+
+            Console.WriteLine("Data inserted successfully!");
+        }
+        public void UpdateDocSignDetails(DocSign signs)
+        {
+            string fieldsPagesString = string.Join(",", signs.FieldsPages);
+            string Top = string.Join(",", signs.Top);
+            string Right = string.Join(",", signs.Right);
+            string Bottom = string.Join(",", signs.Bottom);
+            string Left = string.Join(",", signs.Left);
+            using (SqlConnection connection = new SqlConnection(connectionString))
+            {
+                connection.Open();
+
+                using (SqlCommand command = new SqlCommand("UpdateDoc", connection))
+                {
+                    command.CommandType = CommandType.StoredProcedure;
+
+                    command.Parameters.AddWithValue("@DocId", signs.DocId);
                     command.Parameters.AddWithValue("@TotalFields", signs.TotalFields);
                     command.Parameters.AddWithValue("@FieldsPages", fieldsPagesString);
                     command.Parameters.AddWithValue("@Toppx", Top);

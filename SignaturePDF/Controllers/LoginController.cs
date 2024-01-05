@@ -155,14 +155,62 @@ namespace SignaturePDF.Controllers
             // Return a response if necessary
             return Json(new { success = true, message = "Data received successfully" });
         }
+        [HttpPost]
+        public ActionResult Position(List<SignPosition> inputValues)
+        {
+
+            DocSign signs = new DocSign();
+            List<int> FielPages = new List<int>();
+            List<int> Top = new List<int>();
+            List<int> Right = new List<int>();
+            List<int> Bottom = new List<int>();
+            List<int> Left = new List<int>();
+            foreach (var inputField in inputValues)
+            {
+                FielPages.Add(inputField.id);
+                Top.Add(inputField.insetTop);
+                Right.Add(inputField.insetRight);
+                Bottom.Add(inputField.insetBottom);
+                Left.Add(inputField.insetLeft);
+                /* var id = inputField.id;
+                 var insetTop = inputField.insetTop;
+                 var insetRight = inputField.insetRight;
+                 var insetBottom = inputField.insetBottom;
+                 var insetLeft = inputField.insetLeft;*/
+            }
+            /* signs.UserId = (int)Session["UserId"];
+             signs.DocId= (int)Session["DocId"];*/
+            signs.UserId = (int)Session["UserId"];
+            signs.DocId = Session["DocId"] as int? ?? 0;
+            signs.TotalFields = FielPages.Count;
+            signs.FieldsPages = FielPages;
+            signs.Top = Top;
+            signs.Right = Right;
+            signs.Bottom = Bottom;
+            signs.Left = Left;
+            LoginRepository loginRepository = new LoginRepository();
+           loginRepository.UpdateDocSignDetails(signs);
+            // Return a response if necessary
+            return Json(new { success = true, message = "Data received successfully" });
+        }
+        
         public ActionResult Details(int id)
         {
             LoginRepository loginRepository = new LoginRepository();
             DocSign signs = loginRepository.GetSignValue(id);
-
+            
             ViewBag.filePath = "/SamplePDF/generated15.pdf";
             return View(signs);
         }
+        public ActionResult Preview(int id)
+        {
+            LoginRepository loginRepository = new LoginRepository();
+            DocSign signs = loginRepository.GetSignValue(id);
+            Session["DocId"] = id;
+            ViewBag.filePath = "/SamplePDF/generated15.pdf";
+            return View(signs);
+        }
+        
         /*public ActionResult Details()
         {
             LoginRepository loginRepository = new LoginRepository();

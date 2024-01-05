@@ -30,6 +30,8 @@ var monid = 1;
 //#if (FIREFOX || MOZCENTRAL || B2G || GENERIC || CHROME)
 //PDFJS.workerSrc = '../build/pdf.js';
 //#endif
+var ButtonNode = '';
+var ButtonParentnode = '';
 
 var mozL10n = document.mozL10n || document.webL10n;
 
@@ -2029,7 +2031,9 @@ var PageView = function pageView(container, pdfPage, id, scale,
           };
           console.log('alyer---');
           textLayerDiv.ondragover = function (events) {
+              events.preventDefault();
               handleDragOver(events);
+              console.log("Element ID: " + events.target.id);
           };
           console.log('alyer---');
       div.appendChild(textLayerDiv);
@@ -3315,6 +3319,7 @@ window.addEventListener('afterprint', function afterPrint(evt) {
 function handleDrop(event) {
     event.preventDefault();
     const fieldType = event.dataTransfer.getData('text/plain');
+    console.log(fieldType+"  lake");
 
     if (fieldType === 'Signature Field') {
         const signatureField = document.createElement('div');
@@ -3329,7 +3334,53 @@ function handleDrop(event) {
         document.getElementById(mohnishDiv).appendChild(signatureField);
         monid++;
         console.log(monid + "id")
-    } else {
+    } else if ((fieldType.startsWith('ButtonEle'))) {
+        const formField = document.createElement('div');
+        //formField.innerText = fieldType;
+        // formField.className = 'signature-input-' + monid;
+        var leftPosition = event.clientX - event.target.getBoundingClientRect().left - formField.clientWidth / 2;
+        var topPosition = event.clientY - event.target.getBoundingClientRect().top - formField.clientHeight / 2;
+        var parentWidth = event.target.getBoundingClientRect().width; // Width of the parent container
+        var parentHeight = event.target.getBoundingClientRect().height; // Height of the parent container
+        var rightPosition = parentWidth - leftPosition - formField.clientWidth;
+        var bottomPosition = parentHeight - topPosition - formField.clientHeight;
+        formField.id = ButtonParentnode;
+        formField.ondragstart = handleDragStart(event);
+        // Set the position styles
+        formField.style.left = leftPosition + 'px';
+        formField.style.right = rightPosition + 'px';
+        formField.style.top = topPosition + 'px';
+        formField.style.bottom = bottomPosition + 'px';
+        // Make the new form field draggable
+        formField.setAttribute('dir', 'ltr');
+        const fontNameValue = 'g_font_p0_1'; // Replace 'YourFontName' with the actual font name
+        formField.setAttribute('data-font-name', fontNameValue);
+        formField.setAttribute('data-canvas-width', parentWidth);
+        const button = document.createElement('button');
+        button.id = ButtonNode;
+        button.innerText = 'Add Signature!';
+
+        button.draggable = true; // Make the button draggable
+        button.addEventListener("click", function () {
+            // Handle the button click event
+            var clickedDivId = ButtonParentnode;
+            console.log("Clicked div id: " + clickedDivId);
+            var fileInput = document.createElement("input");
+            fileInput.type = "file";
+            fileInput.accept = "image/*";
+            fileInput.style.display = "none"; // Hide the input element
+            fileInput.addEventListener("change", handleFileSelect.bind(null, clickedDivId));
+            fileInput.click();
+        });
+        button.ondragstart = handleDragStart(event);
+        formField.appendChild(button);
+        formField.draggable = true;
+        formField.ondragstart = handleDragStart;
+        console.log("hola" + mohnishDiv);
+        document.getElementById(mohnishDiv).appendChild(formField);
+        
+    }
+    else {
         // For other fields, use the existing logic
         const formField = document.createElement('div');
         //formField.innerText = fieldType;
@@ -3355,9 +3406,7 @@ function handleDrop(event) {
         const button = document.createElement('button');
         button.innerText = 'Add Signature!';
         button.draggable = true; // Make the button draggable
-        button.ondragstart = handleDragStart(event); // Set the button text
-
-        // Append the button to the formField div
+        button.ondragstart = handleDragStart(event); 
         formField.appendChild(button);
         formField.draggable = true;
         formField.ondragstart = handleDragStart;
@@ -3434,6 +3483,75 @@ function getInputValues() {
     sendToMvcAction(inputValues);
 
     console.log(inputValues);
+}
+function updateInputValues() {
+    var inputValues = [];
+    function countElements(startingValue) {
+        var elements = document.querySelectorAll('[id^=' + startingValue + ']');
+        
+        return elements.length;
+    }
+
+    // Example usage: count elements with IDs starting with 'inputfield'
+    var totalCount = countElements('inputfield');
+    console.log('Total count:', totalCount);
+    console.log(monid + "-print");
+    for (var i = 1; i <= totalCount; i++) {
+        console.log("test");
+        var inputField = document.getElementById("inputfield" + i);
+
+        // Extracting required information using regular expressions
+        var htmlContent = inputField.outerHTML;
+        console.log(htmlContent);
+        var idMatch = htmlContent.match(/id="([^"]+)"/);
+        var styleMatch = htmlContent.match(/style="inset:\s?(\d+)px\s?(\d+)px\s?(\d+)px\s?(\d+)px;"/);
+
+        if (idMatch && styleMatch) {
+            var numericPart = getParentIdByChildId(idMatch[1]);
+            var id = extractNumberFromId(numericPart);
+            var insetTop = styleMatch[1];
+            var insetRight = styleMatch[2];
+            var insetBottom = styleMatch[3];
+            var insetLeft = styleMatch[4];
+
+            // Creating an object with extracted values
+            var fieldInfo = {
+                id: id,
+                insetTop: insetTop,
+                insetRight: insetRight,
+                insetBottom: insetBottom,
+                insetLeft: insetLeft
+            };
+
+            inputValues.push(fieldInfo);
+        }
+    }
+
+    // Sending inputValues to your MVC action (you need to implement this part)
+    sendToMvcActionUpdate(inputValues);
+
+    console.log(inputValues);
+}
+function sendToMvcActionUpdate(inputValues) {
+    fetch('/Login/Position', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(inputValues),
+    })
+        .then(response => response.json())
+        .then(data => {
+            console.log('Success:', data);
+
+            alert('Created sucessfully');
+
+            // Redirect to another page after clicking OK on the alert
+            window.location.href = '/Login/UserDoc';
+        })
+        .catch((error) => {
+            console.error('Error:', error);
+        });
 }
 
 function sendToMvcAction(inputValues) {
@@ -3514,13 +3632,21 @@ function appendValues(model) {
         newDiv.setAttribute("dir", "ltr");
         newDiv.setAttribute("data-font-name", "g_font_p0_1");
         newDiv.setAttribute("data-canvas-width", "793");
-        newDiv.setAttribute("draggable", "true");
+        newDiv.setAttribute("draggable", "false");
+        //newDiv.setAttribute("dragstart", handleDragStart);
         newDiv.style.cssText = "inset: " + model.Top[i-1] + "px " + model.Right[i-1] + "px " + model.Bottom[i-1] + "px " + model.Left[i-1] + "px;";
 
         var newButton = document.createElement("button");
         
         newButton.textContent = "Add Signature!";
         newButton.id = "ButtonEle" + i;
+        /*newButton.draggable = true;
+
+        // Set the dragstart event handler
+        newButton.addEventListener("dragstart", function (event) {
+            // Set the data to be transferred during the drag
+            event.dataTransfer.setData("text/plain", newButton.id);
+        });*/
         newButton.addEventListener("click", function () {
             // Handle the button click event
             var clickedDivId = event.currentTarget.parentNode.id;
@@ -3537,6 +3663,53 @@ function appendValues(model) {
         signLayer1.appendChild(newDiv);
     }
     
+}
+function appendValuesPreviwe(model) {
+    console.log(model.TotalFields);
+    console.log(model);
+
+    // Loop based on TotalFields
+    for (var i = 1; i <= model.TotalFields; i++) {
+        console.log(i + "-loop");
+
+        console.log(model.Top[i - 1] + "-loop");
+        console.log(model.FieldsPages[i - 1] + "-loop");
+        var signLayer1 = document.getElementById("signlayer" + model.FieldsPages[i - 1]);
+        var newDiv = document.createElement("div");
+        newDiv.id = "inputfield" + i;
+        newDiv.setAttribute("dir", "ltr");
+        newDiv.setAttribute("data-font-name", "g_font_p0_1");
+        newDiv.setAttribute("data-canvas-width", "793");
+        newDiv.setAttribute("draggable", "false");
+        //newDiv.setAttribute("dragstart", handleDragStart);
+        newDiv.style.cssText = "inset: " + model.Top[i - 1] + "px " + model.Right[i - 1] + "px " + model.Bottom[i - 1] + "px " + model.Left[i - 1] + "px;";
+
+        var newButton = document.createElement("button");
+
+        newButton.textContent = "Add Signature!";
+        newButton.id = "ButtonEle" + i;
+        newButton.draggable = true;
+
+        // Set the dragstart event handler
+        newButton.addEventListener("dragstart", function (event) {
+            // Set the data to be transferred during the drag
+            event.dataTransfer.setData("text/plain", newButton.id);
+        });
+      
+        newDiv.appendChild(newButton);
+        console.log(signLayer1);
+        signLayer1.appendChild(newDiv);
+    }
+
+}
+
+function handleDragStart(event) {
+    // Handle the dragstart event
+    console.log("Drag started!");
+    
+    
+    // You can add additional logic or actions here
+    event.dataTransfer.setData("text/plain", event.target.id);
 }
 function handleFileSelect(containerDiv, event) {
     var file = event.target.files[0];
@@ -3603,3 +3776,20 @@ $(document).ready(function () {
         });
     }
 });
+function handleDragOver(event) {
+    // Print the element id
+    //console.log("Element ID: " + event.target.id);
+
+    // Check if the element ID starts with "ButtonEle"
+    if (event.target.id.startsWith("ButtonEle")) {
+        ButtonNode = event.target.id;
+        // Delete the parent element
+        const parentElement = event.target.parentElement;
+        ButtonParentnode = event.target.parentElement.id;
+        console.log(ButtonNode + " nodes " + ButtonParentnode)
+        if (parentElement) {
+            parentElement.remove();
+            console.log("Parent element deleted.");
+        }
+    }
+}

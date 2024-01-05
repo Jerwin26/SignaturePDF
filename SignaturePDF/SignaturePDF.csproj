@@ -413,6 +413,7 @@
     <Content Include="Views\Home\HelloPdf.cshtml" />
     <Content Include="Views\Home\Manage.cshtml" />
     <Content Include="Views\Login\Details.cshtml" />
+    <Content Include="Views\Login\Preview.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />
