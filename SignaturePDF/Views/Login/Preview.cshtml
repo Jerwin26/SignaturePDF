@@ -14,17 +14,18 @@
     @Styles.Render("~/pdf.js/css")
     @Scripts.Render("~/pdf.js/js")
 
-
+    <script src="https://unpkg.com/pdf-lib@1.4.0"></script>
+    <script src="https://unpkg.com/downloadjs@1.4.7"></script>
     <script type="text/javascript">
             var THEFILEPATH = ("@ViewBag.filePath");
             var url = '@Url.Content("~/pdf.js/worker_loader.js")';
         PDFJS.workerSrc = url;
 
     </script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.0.379/pdf.min.mjs"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+    @*<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.0.379/pdf.min.mjs"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>*@
 
-
+   
     <style>
         #viewer {
             position: relative;
@@ -127,6 +128,39 @@
                             <button>
                                 <div id="Append" onclick="appendValuesPreviwe(@Newtonsoft.Json.JsonConvert.SerializeObject(Model))">Show</div>
                             </button>
+                            <button onclick="modifyPdf()">Download PDF</button>
+                            <script>
+                                const { degrees, PDFDocument, rgb, StandardFonts } = PDFLib
+
+                                 function modifyPdf() {
+                                    const url = 'https://pdf-lib.js.org/assets/with_update_sections.pdf'
+                                    const existingPdfBytes = await fetch(url).then(res => res.arrayBuffer())
+                                    const pdfDoc = await PDFDocument.load(existingPdfBytes)
+
+                                    const helveticaFont = await pdfDoc.embedFont(StandardFonts.Helvetica)
+
+                                    // Get the first page of the document
+                                    const pages = pdfDoc.getPages()
+                                    const firstPage = pages[0]
+
+                                    // Get the width and height of the first page
+                                    const { width, height } = firstPage.getSize()
+                                    console.lo
+                                    firstPage.drawText('sampledemo', {
+                                        x: 610,
+                                        y: height / 2 + 0,
+                                        size: 12,
+                                        font: helveticaFont,
+                                        color: rgb(0.95, 0.1, 0.1),
+                                    })
+
+                                    // Serialize the PDFDocument to bytes (a Uint8Array)
+                                    const pdfBytes = await pdfDoc.save()
+
+                                    // Trigger the browser to download the PDF document
+                                    download(pdfBytes, "modification_example.pdf", "application/pdf");
+                                }
+                            </script>
                             @*Ed-moni*@
                             @* <button id="downloadPdf">Download Modified PDF</button>*@
                             <button id="generatePdfButton">Download</button>

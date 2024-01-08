@@ -1,0 +1,91 @@
+﻿@{
+    ViewBag.Title = "UserDoc";
+    Layout = null;
+}
+<html>
+<head>
+    <meta charset="utf-8" />
+    <script src="https://unpkg.com/pdf-lib@1.4.0"></script>
+    <script src="https://unpkg.com/downloadjs@1.4.7"></script>
+    <style>
+        body {
+            width: 100vw;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+        }
+
+        p {
+            font-family: helvetica;
+            font-size: 24px;
+            text-align: center;
+            margin: 25px;
+        }
+
+        .small {
+            font-family: helvetica;
+            font-size: 18px;
+            text-align: center;
+            margin: 25px;
+        }
+
+        button {
+            background-color: #008CBA;
+            border: none;
+            color: white;
+            padding: 15px 32px;
+            text-align: center;
+            font-size: 16px;
+        }
+    </style>
+</head>
+
+<body>
+    <button onclick="modifyPdf()">Download PDF</button>
+
+
+    <script>
+        modifyPdf()
+        const { degrees, PDFDocument, rgb, StandardFonts } = PDFLib
+
+        async function modifyPdf() {
+            const url = 'https://localhost:44348/Login/DownloadPdf1'
+            const existingPdfBytes = await fetch(url).then(res => res.arrayBuffer())
+            const pdfDoc = await PDFDocument.load(existingPdfBytes)
+
+            const helveticaFont = await pdfDoc.embedFont(StandardFonts.Helvetica)
+            const pixelRatio = window.devicePixelRatio || 1;
+            console.log('j--' + pixelRatio);
+
+            // Assuming a standard DPI of 96, calculate the actual DPI
+            const standardDPI = 96;
+            const calculatedDPI = pixelRatio * standardDPI;
+
+            console.log(`Calculated DPI: ${calculatedDPI}`);
+            const pages = pdfDoc.getPages()
+            const firstPage = pages[0]
+            const jj = (calculatedDPI / 72);
+            const { width, height } = firstPage.getSize()
+            console.log('y +' + jj * width + ' x+' + height * jj);
+            console.log(width + 'px' + height);
+            console.log('jj0+ ' + jj);
+            firstPage.drawText('sampledemo', {
+                x: 653 * (72 / calculatedDPI),/*left*/
+                y: 935 * (72 / calculatedDPI),/*bottom*/
+                size: 15,
+                font: helveticaFont,
+                color: rgb(0.95, 0.1, 0.1),
+
+            })
+
+            // Serialize the PDFDocument to bytes (a Uint8Array)
+            const pdfBytes = await pdfDoc.save()
+
+            // Trigger the browser to download the PDF document
+            download(pdfBytes, "modification_example.pdf", "application/pdf");
+        }
+    </script>
+</body>
+</html>

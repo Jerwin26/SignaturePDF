@@ -3,7 +3,8 @@
 @{
     ViewBag.Title = "UserDoc";
 }
-
+<script src="https://unpkg.com/pdf-lib@1.4.0"></script>
+<script src="https://unpkg.com/downloadjs@1.4.7"></script>
 <h2>UserDoc</h2>
 
 <p>
@@ -23,19 +24,81 @@
         <th></th>
     </tr>
 
-@foreach (var item in Model) {
-    <tr>
-        <td>
-            @Html.DisplayFor(modelItem => item.Name)
-        </td>
-        <td>
-            @Html.DisplayFor(modelItem => item.UserId)
-        </td>
-        <td>
-            @Html.ActionLink("Preview", "Preview", new { id=item.Id }) |
-            @Html.ActionLink("View", "Details", new { id=item.Id })
-        </td>
-    </tr>
-}
+    @foreach (var item in Model)
+    {
+        <tr>
+            <td>
+                @Html.DisplayFor(modelItem => item.Name)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.UserId)
+            </td>
+            <td>
+                @Html.ActionLink("Preview", "Preview", new { id = item.Id }) |
+                @Html.ActionLink("View", "Details", new { id = item.Id }) |
+                <button onclick="modifyPdf('@item.Id')">Click Me</button>
+            </td>
+        </tr>
+    }
 
 </table>
+<script>
+    //modifyPdf()
+    const { degrees, PDFDocument, rgb, StandardFonts } = PDFLib
+
+    async function modifyPdf(itemId) {
+        console.log(itemId);
+// Replace with your actual itemId
+        const url = `https://localhost:44348/Login/DownloadPdfWala/${itemId}`;
+        const existingPdfBytes = await fetch(url).then(res => res.arrayBuffer())
+        const pdfDoc = await PDFDocument.load(existingPdfBytes)
+        const data = await getAllDataByDocId(itemId);
+        const pages = pdfDoc.getPages()
+        console.log("Returned data:", data);
+        data.forEach(async signData => {
+            const { id, insetTop, insetRight, insetBottom, insetLeft, Bytes } = signData;
+            console.log("Returned signData:", signData);
+          
+            const pageNumber = id - 1; 
+            const standardDPI = 96;
+            const pixelRatio = window.devicePixelRatio || 1;
+            const calculatedDPI = pixelRatio * standardDPI;
+            const firstPage = pages[pageNumber]
+            const { width, height } = firstPage.getSize()
+            const x = insetLeft * (72 / calculatedDPI);
+            const y = insetBottom * (72 / calculatedDPI);
+            console.log('y +' + calculatedDPI * width + ' x+' + height * calculatedDPI);
+            console.log(width + 'px' + height);
+            console.log('jj0+ ' + calculatedDPI);
+            console.log('Bytes+ ' + Bytes);
+            const imageBytes = new Uint8Array(Bytes);
+
+            const image = await pdfDoc.embedPng(imageBytes);
+            firstPage.drawImage(image, {
+                x: x,
+                y: y,
+                width: image.width * 0.5, // Adjust the width as needed
+                height: image.height * 0.5, 
+            });
+        });
+        
+    const pdfBytes = await pdfDoc.save()
+
+   download(pdfBytes, "modification_example.pdf", "application/pdf");
+    }
+    function getAllDataByDocId(docId) {
+        return $.ajax({
+            url: '/Login/AjaxCall',
+            type: 'GET',
+            data: { docId: docId },
+            dataType: 'json',
+            success: function (data) {
+                console.log(data);
+            },
+            error: function (error) {
+                // Handle errors
+                console.error(error);
+            }
+        });
+    }
+</script>

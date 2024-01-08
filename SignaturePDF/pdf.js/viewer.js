@@ -3532,6 +3532,98 @@ function updateInputValues() {
 
     console.log(inputValues);
 }
+function signValuesValues() {
+    var inputValues = [];
+    function countElements(startingValue) {
+        var elements = document.querySelectorAll('[id^=' + startingValue + ']');
+
+        return elements.length;
+    }
+
+    // Example usage: count elements with IDs starting with 'inputfield'
+    var totalCount = countElements('inputfield');
+    console.log('Total count:', totalCount);
+    console.log(monid + "-print");
+    for (var i = 1; i <= totalCount; i++) {
+        console.log("test");
+        var inputField = document.getElementById("inputfield" + i);
+
+        // Extracting required information using regular expressions
+        var htmlContent = inputField.outerHTML;
+         console.log(htmlContent);
+        /*if (inputField) {
+           
+        } else {
+            console.error("Input field with ID 'inputfield1' not found.");
+        }*/
+        var idMatch = htmlContent.match(/id="([^"]+)"/);
+        var styleMatch = htmlContent.match(/style="inset:\s?(\d+)px\s?(\d+)px\s?(\d+)px\s?(\d+)px;"/);
+        console.log(idMatch+'ele'); 
+        if (idMatch && styleMatch) {
+            var numericPart = getParentIdByChildId(idMatch[1]);
+            var id = extractNumberFromId(numericPart);
+            var insetTop = styleMatch[1];
+            var insetRight = styleMatch[2];
+            var insetBottom = styleMatch[3];
+            var insetLeft = styleMatch[4];
+            var base64Data;
+            var imgElement = inputField.querySelector('img');
+
+            if (imgElement) { 
+                var imgSrc = imgElement.getAttribute('src');
+                //console.log(imgSrc);
+                var base64Data = imgSrc.split(',')[1];
+
+                //var bytes = new Uint8Array(Array.from(atob(base64Data), c => c.charCodeAt(0)));
+                //console.log(bytes);
+            } else {
+                console.error("No img element found inside the parent element.");
+            }
+
+            // Get the source attribute of the img element
+            /*var inputFieldEle = document.getElementById(inputField);
+            console.log(inputFieldEle + 'element');*/ 
+            // Check if the input field exists
+            
+            var fieldInfo = {
+                id: id,
+                insetTop: insetTop,
+                insetRight: insetRight,
+                insetBottom: insetBottom,
+                insetLeft: insetLeft,
+                base64Data: base64Data
+            };
+            //console.log(fieldInfo.bytes);
+            inputValues.push(fieldInfo);
+        }
+    }
+
+    // Sending inputValues to your MVC action (you need to implement this part)
+    saveImageUpdate(inputValues);
+
+    console.log('The Val '+inputValues);
+}
+function saveImageUpdate(inputValues) {
+    fetch('/Login/SignData', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(inputValues),
+    })
+        .then(response => response.json())
+        .then(data => {
+            console.log('Success:', data);
+
+           /* alert('Updated sucessfully!');
+
+            // Redirect to another page after clicking OK on the alert
+            window.location.href = '/Login/UserDoc';*/
+        })
+        .catch((error) => {
+            console.error('Error:', error);
+        });
+}
 function sendToMvcActionUpdate(inputValues) {
     fetch('/Login/Position', {
         method: 'POST',
@@ -3721,6 +3813,7 @@ function handleFileSelect(containerDiv, event) {
         reader.onload = function (e) {
             var image = document.createElement("img");
             image.src = e.target.result;
+            image.id = generateRandomId()
             console.log(image);
             var containerDiv1 = document.getElementById(containerDiv);
             containerDiv1.innerHTML = "";
@@ -3732,7 +3825,15 @@ function handleFileSelect(containerDiv, event) {
         reader.readAsDataURL(file);
     }
 }
+function generateRandomId() {
+    // Create a random string of characters
+    var randomString = Math.random().toString(36).substring(2, 10);
 
+    // Prepend a prefix to make it a valid HTML ID
+    var randomId = "img_" + randomString;
+
+    return randomId;
+}
 $(document).ready(function () {
     $('#generatePdfButton').click(function () {
         var outerHtml1 = $('#viewer')[0].outerHTML;

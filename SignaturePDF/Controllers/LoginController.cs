@@ -1,4 +1,5 @@
-﻿using HtmlAgilityPack;
+﻿using Grpc.Core;
+using HtmlAgilityPack;
 using IronPdf;
 using SignaturePDF.Models;
 using SignaturePDF.Repository;
@@ -39,7 +40,8 @@ namespace SignaturePDF.Controllers
         public ActionResult UserDoc()
         {
             LoginRepository loginRepository = new LoginRepository();
-            List<Document> documents = loginRepository.GetAllDocumentsByUser((int)Session["UserId"]);
+           // List<Document> documents = loginRepository.GetAllDocumentsByUser((int)Session["UserId"]);
+            List<Document> documents = loginRepository.GetAllDocumentsByUser(1);
             return View(documents);
         }
 
@@ -193,12 +195,38 @@ namespace SignaturePDF.Controllers
             // Return a response if necessary
             return Json(new { success = true, message = "Data received successfully" });
         }
-        
+
+        [HttpPost]
+        public ActionResult SignData(List<SignPosition> inputValues)
+        {
+
+            LoginRepository loginRepository = new LoginRepository();
+            foreach (var inputField in inputValues)
+            {
+                inputField.Bytes= Convert.FromBase64String(inputField.base64Data);
+                inputField.DocId = Session["DocId"] as int? ?? 0;
+                loginRepository.saveDatew(inputField);
+            }
+            /* signs.UserId = (int)Session["UserId"];
+             signs.DocId= (int)Session["DocId"];*//*
+            signs.UserId = (int)Session["UserId"];
+            signs.DocId = Session["DocId"] as int? ?? 0;
+            signs.TotalFields = FielPages.Count;
+            signs.FieldsPages = FielPages;
+            signs.Top = Top;
+            signs.Right = Right;
+            signs.Bottom = Bottom;
+            signs.Left = Left;
+            LoginRepository loginRepository = new LoginRepository();*/
+            //loginRepository.AppenDocSignDetails(signs);
+            // Return a response if necessary
+            return Json(new { success = true, message = "Data received successfully" });
+        }
         public ActionResult Details(int id)
         {
             LoginRepository loginRepository = new LoginRepository();
             DocSign signs = loginRepository.GetSignValue(id);
-            
+            Session["DocId"] = id;
             ViewBag.filePath = "/SamplePDF/generated15.pdf";
             return View(signs);
         }
@@ -324,6 +352,35 @@ namespace SignaturePDF.Controllers
                 return Json(errorResponse);
             }
         }
+        public FileResult DownloadPdf1()
+        {
+            string filePath = Server.MapPath("~/SamplePDF/generated15.pdf");
+            return File(filePath, "application/pdf", "generated15.pdf");
+        }
+        [HttpGet]
+        public FileResult DownloadPdfWala(string itemId)
+        {
+            
+            string fullUrl = Request.Url.ToString();
+            Console.WriteLine(fullUrl + " moni");
+            string filePath = Server.MapPath("~/SamplePDF/generated15.pdf");
+            return File(filePath, "application/pdf", "generated15.pdf");
+        }
+        public ActionResult Preview1()
+        {
 
+            return View();
+        }
+        [HttpGet]
+        public JsonResult AjaxCall(int docId)
+        {
+
+            LoginRepository loginRepository =new LoginRepository();
+            //Console.WriteLine(docId.docId);
+            var data = loginRepository.GetAllDataByDocId(docId);
+            return Json(data, JsonRequestBehavior.AllowGet);
+        }
     }
+
+
 }

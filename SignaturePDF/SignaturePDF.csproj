@@ -276,6 +276,7 @@
     <Compile Include="Global.asax.cs">
       <DependentUpon>Global.asax</DependentUpon>
     </Compile>
+    <Compile Include="Models\DocId.cs" />
     <Compile Include="Models\DocSign.cs" />
     <Compile Include="Models\Document.cs" />
     <Compile Include="Models\Elements.cs" />
@@ -414,6 +415,7 @@
     <Content Include="Views\Home\Manage.cshtml" />
     <Content Include="Views\Login\Details.cshtml" />
     <Content Include="Views\Login\Preview.cshtml" />
+    <Content Include="Views\Login\Preview1.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />

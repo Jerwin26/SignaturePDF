@@ -7,6 +7,8 @@ using System.Linq;
 using System.Web;
 using System.Web.UI.WebControls;
 using Newtonsoft.Json;
+using System.Web.UI;
+using System.Runtime.InteropServices.ComTypes;
 
 namespace SignaturePDF.Repository
 {
@@ -205,6 +207,81 @@ namespace SignaturePDF.Repository
         {
                 return json.Split(',').Select(int.Parse).ToList();
           
+        }
+
+        public void saveDatew(SignPosition inputField)
+        {
+            using (SqlConnection connection = new SqlConnection(connectionString))
+            {
+                connection.Open();
+
+                using (SqlCommand command = new SqlCommand("InsertDataDoc", connection))
+                {
+                    command.CommandType = CommandType.StoredProcedure;
+
+                    // Add parameters
+                    command.Parameters.AddWithValue("@PageId", inputField.id);
+                    command.Parameters.AddWithValue("@insetTop", inputField.insetTop);
+                    command.Parameters.AddWithValue("@insetRight", inputField.insetRight);
+                    command.Parameters.AddWithValue("@insetBottom", inputField.insetBottom);
+                    command.Parameters.AddWithValue("@insetLeft", inputField.insetLeft);
+                    command.Parameters.AddWithValue("@DocId", inputField.DocId);
+                    command.Parameters.AddWithValue("@Bytes", inputField.Bytes);
+
+                    // Execute the stored procedure
+                    command.ExecuteNonQuery();
+
+                    Console.WriteLine("Data inserted successfully.");
+                }
+            }
+        }
+
+        public List<SignPosition> GetAllDataByDocId(int docId)
+        {
+            List<SignPosition> data = new List<SignPosition>();
+
+            using (SqlConnection connection = new SqlConnection(connectionString))
+            {
+                using (SqlCommand command = new SqlCommand("GetAllDataByDocId", connection))
+                {
+                    command.CommandType = CommandType.StoredProcedure;
+
+                    // Add parameters
+                    command.Parameters.Add("@DocId", SqlDbType.Int).Value = docId;
+
+                    try
+                    {
+                        connection.Open();
+
+                        using (SqlDataReader reader = command.ExecuteReader())
+                        {
+                            while (reader.Read())
+                            {
+                                SignPosition item = new SignPosition
+                                {
+                                    SignId = Convert.ToInt32(reader["ID"]),
+                                    id = Convert.ToInt32(reader["PageId"]),
+                                    insetTop = Convert.ToInt32(reader["insetTop"]),
+                                    insetRight = Convert.ToInt32(reader["insetRight"]),
+                                    insetBottom = Convert.ToInt32(reader["insetBottom"]),
+                                    insetLeft = Convert.ToInt32(reader["insetLeft"]),
+                                    DocId = Convert.ToInt32(reader["DocId"]),
+                                    Bytes = reader["Bytes"] == DBNull.Value ? null : (byte[])reader["Bytes"]
+                                };
+
+                                data.Add(item);
+                            }
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        // Handle exceptions as needed
+                        Console.WriteLine(ex.Message);
+                    }
+                }
+            }
+
+            return data;
         }
     }
 }
