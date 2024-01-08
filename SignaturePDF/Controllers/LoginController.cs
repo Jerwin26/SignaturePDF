@@ -381,6 +381,4 @@ namespace SignaturePDF.Controllers
             return Json(data, JsonRequestBehavior.AllowGet);
         }
     }
-
-
 }
